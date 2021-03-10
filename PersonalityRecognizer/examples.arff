@@ -1,0 +1,98 @@
+@relation features_/home/dial/farm2/apps/PersonalityRecognizer/examples
+
+@attribute filename string
+@attribute AOA numeric
+@attribute BROWN-FREQ numeric
+@attribute CONC numeric
+@attribute FAM numeric
+@attribute IMAG numeric
+@attribute K-F-FREQ numeric
+@attribute K-F-NCATS numeric
+@attribute K-F-NSAMP numeric
+@attribute MEANC numeric
+@attribute MEANP numeric
+@attribute NLET numeric
+@attribute NPHON numeric
+@attribute NSYL numeric
+@attribute T-L-FREQ numeric
+@attribute WC numeric
+@attribute WPS numeric
+@attribute Qmarks numeric
+@attribute Unique numeric
+@attribute Dic numeric
+@attribute Sixltr numeric
+@attribute Abbreviations numeric
+@attribute Emoticons numeric
+@attribute Pronoun numeric
+@attribute I numeric
+@attribute We numeric
+@attribute Self numeric
+@attribute You numeric
+@attribute Other numeric
+@attribute Negate numeric
+@attribute Assent numeric
+@attribute Article numeric
+@attribute Preps numeric
+@attribute Number numeric
+@attribute Affect numeric
+@attribute Posemo numeric
+@attribute Posfeel numeric
+@attribute Optim numeric
+@attribute Negemo numeric
+@attribute Anx numeric
+@attribute Anger numeric
+@attribute Sad numeric
+@attribute Cogmech numeric
+@attribute Cause numeric
+@attribute Insight numeric
+@attribute Discrep numeric
+@attribute Inhib numeric
+@attribute Tentat numeric
+@attribute Certain numeric
+@attribute Senses numeric
+@attribute See numeric
+@attribute Hear numeric
+@attribute Feel numeric
+@attribute Social numeric
+@attribute Comm numeric
+@attribute Othref numeric
+@attribute Humans numeric
+@attribute Time numeric
+@attribute Past numeric
+@attribute Present numeric
+@attribute Future numeric
+@attribute Space numeric
+@attribute Up numeric
+@attribute Down numeric
+@attribute Incl numeric
+@attribute Excl numeric
+@attribute Motion numeric
+@attribute Achieve numeric
+@attribute Relig numeric
+@attribute Sexual numeric
+@attribute Swear numeric
+@attribute Nonfl numeric
+@attribute Fillers numeric
+@attribute Period numeric
+@attribute Comma numeric
+@attribute Colon numeric
+@attribute SemiC numeric
+@attribute QMark numeric
+@attribute Exclam numeric
+@attribute Dash numeric
+@attribute Quote numeric
+@attribute Apostro numeric
+@attribute Parenth numeric
+@attribute OtherP numeric
+@attribute AllPct numeric
+@attribute Extraversion numeric
+@attribute 'Emotional stability' numeric
+@attribute Agreeableness numeric
+@attribute Conscientiousness numeric
+@attribute 'Openness to experience' numeric
+
+@data
+/home/dial/farm2/apps/PersonalityRecognizer/examples/Rob.txt,1.275254,?,0.989918,0.237757,0.990722,?,?,?,0.687418,0.804782,-0.486599,-0.455525,-0.1844,?,-0.343255,0.232947,-0.5,-0.103425,1.162716,-0.089179,-0.5,0,0.806914,1.186968,-0.611684,1.221388,-1.006158,-0.164942,1.358059,0,-0.594585,0.570899,-0.52546,-1.196195,-1.013969,1.258159,-0.834154,0.371551,1.00568,0.893973,-0.164246,-0.352851,-0.486322,-0.907125,-0.310933,1.243302,-0.787544,0.56968,1.141307,-0.726653,0.820154,1.417105,-0.195921,0.65779,-0.66626,-0.016737,0.296694,-1.260402,1.115649,-1.033518,1.385209,0.84151,0.084984,-0.488795,-0.222742,0.187905,0.093198,-0.836622,1.243302,-0.739908,0,0,-0.655455,-1.041993,-0.5,0,-0.5,1.002145,-0.636171,0,-0.709308,0.147092,-0.86058,-0.992102,3.278592,2.482433,2.592673,3.851996,3.410451
+/home/dial/farm2/apps/PersonalityRecognizer/examples/John.txt,-0.78113,?,0.203036,0.498641,-0.182865,?,?,?,0.580882,0.710393,-1.033516,-1.178092,-1.148254,?,1.328889,-0.97978,1.5,-1.229171,-1.025929,-1.303617,-0.5,0,0.905616,0.288008,-0.255313,0.284614,-0.699133,1.40771,-1.019851,0,-0.979045,-1.497402,0.373403,-0.449978,-0.694207,-1.060009,-0.526389,1.228882,0.005189,-0.064523,0.752052,1.467494,0.063506,1.357701,1.157016,0.376739,-0.862052,-1.210022,-0.052586,-0.957271,0.655045,-0.049402,0.733551,0.261638,1.295567,-0.324286,-0.775536,0.829351,0.211608,0.777101,-0.993761,-0.969321,-1.070395,-0.032803,0.363061,-0.874939,1.180719,0.520196,0.376739,0.103456,0,0,1.257041,-0.277791,-0.5,0,1.5,-0.860188,-0.194836,0,1.434978,1.178803,0.723451,0.962313,4.549972,3.436969,3.579494,3.03519,3.115143
+/home/dial/farm2/apps/PersonalityRecognizer/examples/Amy.txt,0.319278,?,-1.392489,-1.469037,-1.314619,?,?,?,-1.466538,-0.166068,1.279524,1.004219,1.282577,?,0.068651,-0.550404,-0.5,0.122912,-0.609783,1.098076,-0.5,0,-1.032856,-1.195953,1.478682,-1.135875,0.702891,-0.290544,0.001758,0,1.261043,0.499698,-1.058189,0.746616,0.72957,0.270914,1.422418,-0.611665,-1.364985,0.547735,-1.350947,-0.332883,1.366845,-0.566068,0.353716,-0.810021,1.19632,-0.389158,-1.286653,0.579467,-1.374057,-0.84827,0.798657,-1.478582,0.268265,1.361396,-0.808404,-0.346018,-1.307734,0.932907,-0.103471,-0.755884,-0.332375,1.406218,1.114899,1.334265,-1.26377,1.153049,-0.810021,-0.739908,0,0,0.335318,1.354934,1.5,0,-0.5,0.718232,1.467178,0,-0.658151,-0.067217,0.997709,0.75288,4.203324,3.586424,4.525165,4.787841,5.089665
+/home/dial/farm2/apps/PersonalityRecognizer/examples/Matt.txt,-0.813403,?,0.199535,0.732639,0.506762,?,?,?,0.198239,-1.349107,0.240591,0.629397,0.050077,?,-1.054285,1.297236,-0.5,1.209684,0.472997,0.29472,1.5,0,-0.679675,-0.279024,-0.611684,-0.370127,1.002399,-0.952224,-0.339966,0,0.312588,0.426805,1.210247,0.899557,0.978606,-0.469064,-0.061874,-0.988769,0.354115,-1.377184,0.763141,-0.781759,-0.944029,0.115492,-1.1998,-0.810021,0.453276,1.029499,0.197932,1.104457,-0.101142,-0.519433,-1.336288,0.559154,-0.897573,-1.020373,1.287245,0.777068,-0.019523,-0.67649,-0.287976,0.883695,1.317786,-0.884621,-1.255218,-0.647232,-0.010146,-0.836622,-0.810021,1.37636,0,0,-0.936904,-0.035151,-0.5,0,-0.5,-0.860188,-0.636171,0,-0.06752,-1.258678,-0.86058,-0.72309,2.671095,3.129562,3.88267,2.451692,3.37743
