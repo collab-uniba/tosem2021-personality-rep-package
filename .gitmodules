@@ -1,0 +1,3 @@
+[submodule "twitpersonality"]
+	path = twitpersonality
+	url = https://github.com/D2KLab/twitpersonality
