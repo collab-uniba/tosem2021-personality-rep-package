@@ -4,10 +4,6 @@ from sklearn import metrics
 
 def rescale(res_df, old_min, old_max, new_min=1, new_max=5):
     res_5point_df = res_df.copy(deep=True)
-    old_min = 1
-    old_max = 7
-    new_min = 1
-    new_max = 5
     for col_name in ('Openn', 'Consc', 'Extra', 'Agree', 'Neuro'):
         new_values = list()
         col = res_5point_df[col_name]
