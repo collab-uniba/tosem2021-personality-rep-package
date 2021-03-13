@@ -252,8 +252,8 @@ def get_mail_corpus():
 
             clean_message_body = _remove_contractions(message_body)
             clean_message_body = _remove_lines_of_code(clean_message_body)
-            clean_message_body = _remove_stopwords_nonenglish_punctuation(clean_message_body)
             clean_message_body = _clean_body(clean_message_body)
+            clean_message_body = _remove_stopwords_nonenglish_punctuation(clean_message_body)
 
             if not clean_message_body == '':
                 if d['email_address'] in _dict:
