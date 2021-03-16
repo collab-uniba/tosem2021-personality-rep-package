@@ -120,7 +120,10 @@ if __name__ == '__main__':
         So, we remove all the useless entries
     """
     gold_std_df = gold_std_df.loc[gold_std_df['email'].isin(scores_df['email'])]
-    min, max = min_max(scores_df)
-    rescaled_res_df = math_utils.rescale(scores_df, old_min=min, old_max=max, new_min=1, new_max=5)
+    _min, _max = min_max(scores_df)
+    rescaled_res_df = math_utils.rescale(scores_df, old_min=_min, old_max=_max, new_min=1, new_max=5)
     MAE = math_utils.compute_mae(rescaled_res_df, gold_std_df)
-    io_utils.store_results('dataset/LIWC/results/mae.json', MAE, 'dataset/LIWC/results/results.json', rescaled_res_df)
+    RMSE = math_utils.compute_rmse(rescaled_res_df, gold_std_df)
+    io_utils.store_results('dataset/LIWC/results/mae.json', MAE,
+                           'dataset/LIWC/results/rmse.json', RMSE,
+                           'dataset/LIWC/results/results.json', rescaled_res_df)
