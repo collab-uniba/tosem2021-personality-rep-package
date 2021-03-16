@@ -13,11 +13,17 @@ python src/pr_score_transformation.py
 
 echo "LIWC"
 echo "LIWC is a desktop app, execute it manually to create LIWC2007_output.csv stored in dataset/LIWC/data"
-# if you used LIWC 2015, use pass 2015 as parameter
+# if you used LIWC 2015, pass 2015 as parameter
 python src/liwc_scores_transformation.py 2007
 
 
+echo "TwitPersonality"
 
 
+echo "Personality Insights"
+
+
+echo "Computing pairwise Pearson correlations"
+python src/utils/math/corr_analysis.py
 
 echo "Done"
