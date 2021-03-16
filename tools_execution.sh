@@ -23,7 +23,7 @@ echo "TwitPersonality"
 echo "Personality Insights"
 
 
-echo "Computing pairwise Pearson correlations"
-python src/utils/math/corr_analysis.py
+echo "Computing PHASE 1 analyses"
+python src/analysis/run_analysis.py
 
 echo "Done"
