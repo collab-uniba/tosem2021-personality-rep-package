@@ -15,7 +15,7 @@ def liwc(senders, data):
             ds[hashed_addr] = emails
         except KeyError:
             continue
-    with open(file="dataset/LIWC/dataset.csv", mode='w') as csv_file:
+    with open(file="dataset/LIWC/data/dataset.csv", mode='w') as csv_file:
         for key in ds:
             csv_file.write("\"\"\"{}\"\"\",\"\"\"{}\"\"\"\n".format(key, ds[key]))
 
