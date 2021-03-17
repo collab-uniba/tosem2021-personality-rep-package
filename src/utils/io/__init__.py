@@ -18,7 +18,9 @@ def load_csv_into_df(path, sep=',', decimal='.'):
     return pd.read_csv(path, sep=sep, decimal=decimal)
 
 
-def store_results(path_mae, mae, path_scores, scores):
+def store_results(path_mae, mae, path_rmse, rmse, path_scores, scores):
     with open(file=path_mae, mode='w') as js_f:
         json.dump(mae, js_f, indent=4)
+    with open(file=path_rmse, mode='w') as js_f:
+        json.dump(rmse, js_f, indent=4)
     scores.to_json(path_scores, indent=4)
