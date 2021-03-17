@@ -75,27 +75,34 @@ def mailcorpus_stats():
     all_bodies = ""
     words_per_email = dict()
     tot_words_user = dict()
+    no_emails_per_user = dict()
     with open(file="dataset/goldstandard/mailcorpus-sha.json", mode="r") as jsf:
         emails = json.load(jsf)
         # count emails
-        for addr in emails:
-            no_emails += len(emails[addr])
-            bodies = ' '.join(emails[addr])
-            emails_dict[addr] = bodies
+        for subject in emails:
+            no_emails_per_user[subject] = len(emails[subject])
+            no_emails += no_emails_per_user[subject]
+            bodies = ' '.join(emails[subject])
+            emails_dict[subject] = bodies
             all_bodies += " " + bodies
-            tot_words_user[addr] = len(bodies.split())
-            words_per_email[addr] = tot_words_user[addr] / len(emails[addr])
+            tot_words_user[subject] = len(bodies.split())
+            words_per_email[subject] = tot_words_user[subject] / len(emails[subject])
     # count addresses
     with open(file="dataset/goldstandard/address_list_sha.txt", mode="r") as f:
         no_subjects = len(f.readlines())
 
-    with open(file="results/phase1/descriptive_stats.txt", mode="w") as f:
-        f.write("No. of subjects: {}\n".format(no_subjects))
+    with open(file="results/phase1/descriptive_stats.txt", mode="a+") as f:
+        f.write("\n\nNo. of subjects: {}\n".format(no_subjects))
         f.write("Total no. of emails: {}\n".format(no_emails))
         f.write("Total no. of words: {}\n".format(len(all_bodies.split())))
-        f.write("Avg. no. of emails per user: {:.0f}\n".format(no_emails / no_subjects))
-        f.write("Avg. no. of words per email: {:.0f}\n".format(np.mean(list(words_per_email.values()))))
-        f.write("Avg. no. words per user: {:.0f}\n".format(np.mean(list(tot_words_user.values()))))
+        f.write("Avg. no. of emails per user {:.0f} (SD {:.2f})\n".format(no_emails / no_subjects,
+                                                                                    np.std(list(
+                                                                                        no_emails_per_user.values()))))
+        #f.write(
+        #    "Avg. no. of words per email {:.0f} (SD {:.2f})\n".format(np.mean(list(words_per_email.values())),
+        #                                                                        np.std(list(words_per_email.values()))))
+        f.write("Avg. no. words per user {:.0f} (SD {:.2f})\n".format(np.mean(list(tot_words_user.values())),
+                                                                                np.std(list(tot_words_user.values()))))
 
 
 def groundtruth_stats(email_addresses):
@@ -116,6 +123,26 @@ def groundtruth_stats(email_addresses):
         axes.yaxis.grid(True)
         plt.savefig("results/phase1/violins.png")
 
+        with open(file="results/phase1/descriptive_stats.txt", mode="w") as f:
+            f.write("Mean Openness {:.2f} (Min {}, Max{}, SD {:.2f})\n".format(np.mean(openness), min(openness),
+                                                                               max(openness), np.std(openness)))
+            f.write("Mean Conscientiousness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(conscientiousness),
+                                                                                         min(conscientiousness),
+                                                                                         max(conscientiousness),
+                                                                                         np.std(conscientiousness)))
+            f.write("Mean Extraversion {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(extraversion),
+                                                                                    min(extraversion),
+                                                                                    max(extraversion),
+                                                                                    np.std(extraversion)))
+            f.write("Mean Agreeableness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(agreeableness),
+                                                                                     min(agreeableness),
+                                                                                     max(agreeableness),
+                                                                                     np.std(agreeableness)))
+            f.write("Mean Neuroticism {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(neuroticism),
+                                                                                   min(neuroticism),
+                                                                                   max(neuroticism),
+                                                                                   np.std(neuroticism)))
+
 
 if __name__ == '__main__':
     with open(file="dataset/goldstandard/address_list_sha.txt", mode="r") as f:
@@ -124,8 +151,8 @@ if __name__ == '__main__':
         mailcorpus_stats()
 
         tools = {'LIWC': 'dataset/LIWC/results/results.json',
-                 'PR': 'dataset/PersonalityRecognizer/results/results.json'}  # ,
-        # 'TP': 'dataset/twitpersonality/Results/results.json',
+                 'PR': 'dataset/PersonalityRecognizer/results/results.json',
+                 'TP': 'dataset/twitpersonality/Results/results.json'}  #
         # 'PI': 'dataset/PersonalityInsights/results'}
         df_o, df_c, df_e, df_a, df_n = build_dataframe(tools)
         normality_test(df_o, df_c, df_e, df_a, df_n, tools.keys())
