@@ -81,7 +81,6 @@ def _get_neuroticism(score, liwc_ver):
 
 
 def compute_big5_scores(emails, raw_results, dict_ver):
-    col_names = ('email', 'Openn', 'Consc', 'Extra', 'Agree', 'Neuro')
     scores_list = list()
     for email in emails:
         row = raw_results.loc[raw_results['Source (A)'] == email].copy(deep=True)
@@ -93,7 +92,7 @@ def compute_big5_scores(emails, raw_results, dict_ver):
         neu = _get_neuroticism(row, dict_ver)
         row_dict = {'email': email.strip('"'), 'Openn': ope, 'Consc': con, 'Extra': ext, 'Agree': agr, 'Neuro': neu}
         scores_list.append(row_dict)
-    scores = pd.DataFrame(data=scores_list, columns=col_names)
+    scores = pd.DataFrame(data=scores_list, columns=('email', 'Openn', 'Consc', 'Extra', 'Agree', 'Neuro'))
     return scores
 
 
