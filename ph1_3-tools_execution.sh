@@ -20,7 +20,6 @@ echo "TwitPersonality"
 python src/tp.py
 
 echo "Personality Insights"
-# TODO
-
+python src/ibmpi.py
 
 echo "Done"

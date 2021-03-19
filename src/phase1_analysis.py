@@ -153,8 +153,8 @@ if __name__ == '__main__':
 
         tools = {'LIWC': 'dataset/LIWC/results/results.json',
                  'PR': 'dataset/PersonalityRecognizer/results/results.json',
-                 'TP': 'dataset/twitpersonality/Results/results.json'}  #
-        # 'PI': 'dataset/PersonalityInsights/results'}
+                 'TP': 'dataset/twitpersonality/Results/results.json',
+                 'PI': 'dataset/PersonalityInsights/results'}
         df_o, df_c, df_e, df_a, df_n = build_dataframe(tools)
         normality_test(df_o, df_c, df_e, df_a, df_n, tools.keys())
         pairwise_correlations(df_o, df_c, df_e, df_a, df_n)

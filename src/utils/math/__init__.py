@@ -1,5 +1,15 @@
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from scipy.stats import shapiro
+
+
+def test_normal_distribution(data, alpha=0.05):
+    stat, p = shapiro(data)
+    if p > alpha:
+        is_normal = True
+    else:
+        is_normal = True
+    return is_normal, stat, p
 
 
 def rescale(res_df, old_min, old_max, new_min=1, new_max=5):
