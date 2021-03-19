@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
 
-echo "Setting up environment dependencies"
+echo "Setting up environment dependencies."
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # TODO check if brew is available
+  echo "Installing macOS-specific requirements"
+  brew install icu4c
+  brew link icu4c --force
+  ver=$(icu-config --version)
+  export ICU_VERSION="${ver}"
+  export PYICU_INCLUDES="/usr/local/Cellar/icu4c/${ver}/include"
+  export PYICU_LFLAGS=-L"/usr/local/Cellar/icu4c/${ver}/lib"
+fi
+
+echo "Installing R packages"
+# TODO check if R is available
 Rscript -e "install.packages('remotes', dependencies=TRUE, repos='https://cloud.r-project.org')"
 Rscript -e "remotes::install_github('M3SOulu/NLoN')"
-echo "Done"
 
-conda deactivate > /dev/null
+echo "Setting up the virtual environment"
 python3 -m venv .env
 source .env/bin/activate
 pip install -r requirements.txt
 deactivate
-echo "Done"
 
 echo "Setting up TwitPersonality"
 wget https://dl.fbaipublicfiles.com/fasttext/vectors-english/wiki-news-300d-1M.vec.zip
