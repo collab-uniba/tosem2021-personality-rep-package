@@ -3,8 +3,8 @@ import json
 import numpy as np
 import pandas as pd
 
-from analysis import test_normal_distribution as normal
 from utils import plot as plot_utils
+from utils.math import test_normal_distribution as normal
 
 
 def build_dataframe(tool_resfile_dict):
@@ -91,8 +91,8 @@ def mailcorpus_stats():
     with open(file="dataset/goldstandard/address_list_sha.txt", mode="r") as f:
         no_subjects = len(f.readlines())
 
-    with open(file="results/phase1/descriptive_stats.txt", mode="a+") as f:
-        f.write("\n\nNo. of subjects: {}\n".format(no_subjects))
+    with open(file="results/phase1/mail_corpus_stats.txt", mode="w") as f:
+        f.write("No. of subjects: {}\n".format(no_subjects))
         f.write("Total no. of emails: {}\n".format(no_emails))
         f.write("Total no. of words: {}\n".format(len(all_bodies.split())))
         f.write("Avg. no. of emails per user {:.0f} (SD {:.2f})\n".format(no_emails / no_subjects,
@@ -119,6 +119,36 @@ def groundtruth_stats(email_addresses):
                                      "results/phase1/gs-violins.png")
 
         with open(file="results/phase1/descriptive_stats.txt", mode="w") as f:
+            f.write("Gold Standard\n")
+            f.write("Mean Openness {:.2f} (Min {}, Max{}, SD {:.2f})\n".format(np.mean(openness), min(openness),
+                                                                               max(openness), np.std(openness)))
+            f.write("Mean Conscientiousness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(conscientiousness),
+                                                                                         min(conscientiousness),
+                                                                                         max(conscientiousness),
+                                                                                         np.std(conscientiousness)))
+            f.write("Mean Extraversion {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(extraversion),
+                                                                                    min(extraversion),
+                                                                                    max(extraversion),
+                                                                                    np.std(extraversion)))
+            f.write("Mean Agreeableness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(agreeableness),
+                                                                                     min(agreeableness),
+                                                                                     max(agreeableness),
+                                                                                     np.std(agreeableness)))
+            f.write("Mean Neuroticism {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(neuroticism),
+                                                                                   min(neuroticism),
+                                                                                   max(neuroticism),
+                                                                                   np.std(neuroticism)))
+
+
+def update_descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools):
+    with open(file="results/phase1/descriptive_stats.txt", mode="a+") as f:
+        for tool in tools:
+            openness = df_o[tool].values
+            conscientiousness = df_c[tool].values
+            extraversion = df_e[tool].values
+            agreeableness = df_a[tool].values
+            neuroticism = df_n[tool].values
+            f.write("\n\n{}\n".format(tool))
             f.write("Mean Openness {:.2f} (Min {}, Max{}, SD {:.2f})\n".format(np.mean(openness), min(openness),
                                                                                max(openness), np.std(openness)))
             f.write("Mean Conscientiousness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(conscientiousness),
@@ -152,10 +182,11 @@ if __name__ == '__main__':
         mailcorpus_stats()
 
         tools = {'LIWC': 'dataset/LIWC/results/results.json',
+                 'PI': 'dataset/PersonalityInsights/results/results.json',
                  'PR': 'dataset/PersonalityRecognizer/results/results.json',
-                 'TP': 'dataset/twitpersonality/Results/results.json',
-                 'PI': 'dataset/PersonalityInsights/results'}
+                 'TP': 'dataset/twitpersonality/Results/results.json'}
         df_o, df_c, df_e, df_a, df_n = build_dataframe(tools)
+        update_descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools)
         normality_test(df_o, df_c, df_e, df_a, df_n, tools.keys())
         pairwise_correlations(df_o, df_c, df_e, df_a, df_n)
         save_plots(df_o, df_c, df_e, df_a, df_n, tools.keys())
