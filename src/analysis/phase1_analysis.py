@@ -1,10 +1,10 @@
 import json
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from analysis import test_normal_distribution as normal
+from utils import plot as plot_utils
 
 
 def build_dataframe(tool_resfile_dict):
@@ -96,13 +96,13 @@ def mailcorpus_stats():
         f.write("Total no. of emails: {}\n".format(no_emails))
         f.write("Total no. of words: {}\n".format(len(all_bodies.split())))
         f.write("Avg. no. of emails per user {:.0f} (SD {:.2f})\n".format(no_emails / no_subjects,
-                                                                                    np.std(list(
-                                                                                        no_emails_per_user.values()))))
-        #f.write(
+                                                                          np.std(list(
+                                                                              no_emails_per_user.values()))))
+        # f.write(
         #    "Avg. no. of words per email {:.0f} (SD {:.2f})\n".format(np.mean(list(words_per_email.values())),
         #                                                                        np.std(list(words_per_email.values()))))
         f.write("Avg. no. words per user {:.0f} (SD {:.2f})\n".format(np.mean(list(tot_words_user.values())),
-                                                                                np.std(list(tot_words_user.values()))))
+                                                                      np.std(list(tot_words_user.values()))))
 
 
 def groundtruth_stats(email_addresses):
@@ -115,13 +115,8 @@ def groundtruth_stats(email_addresses):
         agreeableness = df['agreeableness'].values
         neuroticism = df['neuroticism'].values
 
-        fig, axes = plt.subplots()
-        axes.violinplot(dataset=[openness, conscientiousness, extraversion, agreeableness, neuroticism], showmeans=True)
-        xticklabels = ['Ope', 'Con', 'Ext', 'Agr', 'Neu']
-        axes.set_xticks([1, 2, 3, 4, 5])
-        axes.set_xticklabels(xticklabels)
-        axes.yaxis.grid(True)
-        plt.savefig("results/phase1/violins.png")
+        plot_utils.save_violins_plot(openness, conscientiousness, extraversion, agreeableness, neuroticism,
+                                     "results/phase1/gs-violins.png")
 
         with open(file="results/phase1/descriptive_stats.txt", mode="w") as f:
             f.write("Mean Openness {:.2f} (Min {}, Max{}, SD {:.2f})\n".format(np.mean(openness), min(openness),
@@ -144,6 +139,12 @@ def groundtruth_stats(email_addresses):
                                                                                    np.std(neuroticism)))
 
 
+def save_plots(df_o, df_c, df_e, df_a, df_n, tools):
+    for tool in tools:
+        path = "results/phase1/{}-violings.png".format(tool)
+        plot_utils.save_violins_plot(df_o[tool], df_c[tool], df_e[tool], df_a[tool], df_n[tool], path)
+
+
 if __name__ == '__main__':
     with open(file="dataset/goldstandard/address_list_sha.txt", mode="r") as f:
         emails_addr = [e.strip() for e in f.readlines()]
@@ -157,3 +158,4 @@ if __name__ == '__main__':
         df_o, df_c, df_e, df_a, df_n = build_dataframe(tools)
         normality_test(df_o, df_c, df_e, df_a, df_n, tools.keys())
         pairwise_correlations(df_o, df_c, df_e, df_a, df_n)
+        save_plots(df_o, df_c, df_e, df_a, df_n, tools.keys())
