@@ -16,14 +16,11 @@ echo "LIWC is a desktop app, execute it manually to create LIWC2007_output.csv s
 # if you used LIWC 2015, pass 2015 as parameter
 python src/liwc.py 2007
 
-
 echo "TwitPersonality"
 python src/tp.py
 
 echo "Personality Insights"
+# TODO
 
-
-echo "Computing PHASE 1 analyses"
-python src/analysis/phase1_analysis.py
 
 echo "Done"
