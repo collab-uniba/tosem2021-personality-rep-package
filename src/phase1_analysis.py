@@ -3,16 +3,18 @@ import json
 import numpy as np
 import pandas as pd
 
+from utils import io as io_utils
 from utils import plot as plot_utils
 from utils.math import test_normal_distribution as normal
 
 
-def build_dataframe(tool_resfile_dict):
-    df_o = pd.DataFrame(columns=tool_resfile_dict.keys())
-    df_c = pd.DataFrame(columns=tool_resfile_dict.keys())
-    df_e = pd.DataFrame(columns=tool_resfile_dict.keys())
-    df_a = pd.DataFrame(columns=tool_resfile_dict.keys())
-    df_n = pd.DataFrame(columns=tool_resfile_dict.keys())
+def build_dataframe(tool_resfile_dict, gs_df):
+    gs_df.drop(columns=['email'], inplace=True)
+    df_o = pd.DataFrame(columns=['GOLDSTD'] + list(tool_resfile_dict.keys()))
+    df_c = pd.DataFrame(columns=['GOLDSTD'] + list(tool_resfile_dict.keys()))
+    df_e = pd.DataFrame(columns=['GOLDSTD'] + list(tool_resfile_dict.keys()))
+    df_a = pd.DataFrame(columns=['GOLDSTD'] + list(tool_resfile_dict.keys()))
+    df_n = pd.DataFrame(columns=['GOLDSTD'] + list(tool_resfile_dict.keys()))
     for tool in tool_resfile_dict:
         with open(file=tool_resfile_dict[tool], mode='r') as jsf:
             js = json.load(jsf)
@@ -22,7 +24,13 @@ def build_dataframe(tool_resfile_dict):
             df_e[tool] = temp['Extra']
             df_a[tool] = temp['Agree']
             df_n[tool] = temp['Neuro']
-    return df_o, df_c, df_e, df_a, df_n
+
+    df_o['GOLDSTD'] = gs_df['openness'].values
+    df_c['GOLDSTD'] = gs_df['conscientiousness'].values
+    df_e['GOLDSTD'] = gs_df['extraversion'].values
+    df_a['GOLDSTD'] = gs_df['agreeableness'].values
+    df_n['GOLDSTD'] = gs_df['neuroticism'].values
+    return df_o, df_c, df_e, df_a, df_n, df_o.columns
 
 
 def normality_test(df_o, df_c, df_e, df_a, df_n, tools):
@@ -105,42 +113,7 @@ def mailcorpus_stats():
                                                                       np.std(list(tot_words_user.values()))))
 
 
-def groundtruth_stats(email_addresses):
-    with open(file="dataset/goldstandard/ipip-scores-sha.json", mode="r") as jsf:
-        df = pd.DataFrame.from_dict(json.load(jsf))
-        df = df.loc[df['email'].isin(email_addresses)]
-        openness = df['openness'].values
-        conscientiousness = df['conscientiousness'].values
-        extraversion = df['extraversion'].values
-        agreeableness = df['agreeableness'].values
-        neuroticism = df['neuroticism'].values
-
-        plot_utils.save_violins_plot(openness, conscientiousness, extraversion, agreeableness, neuroticism,
-                                     "results/phase1/gs-violins.png")
-
-        with open(file="results/phase1/descriptive_stats.txt", mode="w") as f:
-            f.write("Gold Standard\n")
-            f.write("Mean Openness {:.2f} (Min {}, Max{}, SD {:.2f})\n".format(np.mean(openness), min(openness),
-                                                                               max(openness), np.std(openness)))
-            f.write("Mean Conscientiousness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(conscientiousness),
-                                                                                         min(conscientiousness),
-                                                                                         max(conscientiousness),
-                                                                                         np.std(conscientiousness)))
-            f.write("Mean Extraversion {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(extraversion),
-                                                                                    min(extraversion),
-                                                                                    max(extraversion),
-                                                                                    np.std(extraversion)))
-            f.write("Mean Agreeableness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(agreeableness),
-                                                                                     min(agreeableness),
-                                                                                     max(agreeableness),
-                                                                                     np.std(agreeableness)))
-            f.write("Mean Neuroticism {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(neuroticism),
-                                                                                   min(neuroticism),
-                                                                                   max(neuroticism),
-                                                                                   np.std(neuroticism)))
-
-
-def update_descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools):
+def descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools):
     with open(file="results/phase1/descriptive_stats.txt", mode="a+") as f:
         for tool in tools:
             openness = df_o[tool].values
@@ -176,17 +149,19 @@ def save_plots(df_o, df_c, df_e, df_a, df_n, tools):
 
 
 if __name__ == '__main__':
+    mailcorpus_stats()
     with open(file="dataset/goldstandard/address_list_sha.txt", mode="r") as f:
         emails_addr = [e.strip() for e in f.readlines()]
-        groundtruth_stats(emails_addr)
-        mailcorpus_stats()
+        goldstd_df = io_utils.load_gold_standard()
+        goldstd_df = goldstd_df[goldstd_df['email'].isin(emails_addr)].reset_index(drop=True)
+        goldstd_df.drop(goldstd_df.tail(1).index, inplace=True)  # remove extra line
 
         tools = {'LIWC': 'dataset/LIWC/results/results.json',
                  'PI': 'dataset/PersonalityInsights/results/results.json',
                  'PR': 'dataset/PersonalityRecognizer/results/results.json',
                  'TP': 'dataset/twitpersonality/Results/results.json'}
-        df_o, df_c, df_e, df_a, df_n = build_dataframe(tools)
-        update_descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools)
-        normality_test(df_o, df_c, df_e, df_a, df_n, tools.keys())
+        df_o, df_c, df_e, df_a, df_n, col_names = build_dataframe(tools, goldstd_df)
+        descriptive_stats(df_o, df_c, df_e, df_a, df_n, col_names)
+        normality_test(df_o, df_c, df_e, df_a, df_n, col_names)
         pairwise_correlations(df_o, df_c, df_e, df_a, df_n)
-        save_plots(df_o, df_c, df_e, df_a, df_n, tools.keys())
+        save_plots(df_o, df_c, df_e, df_a, df_n, col_names)
