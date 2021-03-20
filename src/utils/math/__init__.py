@@ -57,20 +57,21 @@ def compute_mae(results, goldstd):
     and then stored in a list.
     """
     mae = dict()
-    mae['Extra'] = mean_absolute_error(merged_dataset['extraversion'], merged_dataset['Extra'])
-    mae['Neuro'] = mean_absolute_error(merged_dataset['neuroticism'], merged_dataset['Neuro'])
-    mae['Consc'] = mean_absolute_error(merged_dataset['conscientiousness'], merged_dataset['Consc'])
-    mae['Openn'] = mean_absolute_error(merged_dataset['openness'], merged_dataset['Openn'])
-    mae['Agree'] = mean_absolute_error(merged_dataset['agreeableness'], merged_dataset['Agree'])
+    mae['Openn'] = round(mean_absolute_error(merged_dataset['openness'], merged_dataset['Openn']), 3)
+    mae['Consc'] = round(mean_absolute_error(merged_dataset['conscientiousness'], merged_dataset['Consc']), 3)
+    mae['Extra'] = round(mean_absolute_error(merged_dataset['extraversion'], merged_dataset['Extra']), 3)
+    mae['Agree'] = round(mean_absolute_error(merged_dataset['agreeableness'], merged_dataset['Agree']), 3)
+    mae['Neuro'] = round(mean_absolute_error(merged_dataset['neuroticism'], merged_dataset['Neuro']), 3)
     return mae
 
 
 def compute_rmse(results, goldstd):
     merged_dataset = _setup_dataset(goldstd, results)
     rmse = dict()
-    rmse['Extra'] = mean_squared_error(merged_dataset['Extra'], merged_dataset['extraversion'], squared=True)
-    rmse['Neuro'] = mean_squared_error(merged_dataset['Neuro'], merged_dataset['neuroticism'], squared=True)
-    rmse['Consc'] = mean_squared_error(merged_dataset['Consc'], merged_dataset['conscientiousness'], squared=True)
-    rmse['Openn'] = mean_squared_error(merged_dataset['Openn'], merged_dataset['openness'], squared=True)
-    rmse['Agree'] = mean_squared_error(merged_dataset['Agree'], merged_dataset['agreeableness'], squared=True)
+    rmse['Openn'] = round(mean_squared_error(merged_dataset['Openn'], merged_dataset['openness'], squared=True), 3)
+    rmse['Consc'] = round(
+        mean_squared_error(merged_dataset['Consc'], merged_dataset['conscientiousness'], squared=True), 3)
+    rmse['Extra'] = round(mean_squared_error(merged_dataset['Extra'], merged_dataset['extraversion'], squared=True), 3)
+    rmse['Agree'] = round(mean_squared_error(merged_dataset['Agree'], merged_dataset['agreeableness'], squared=True), 3)
+    rmse['Neuro'] = round(mean_squared_error(merged_dataset['Neuro'], merged_dataset['neuroticism'], squared=True), 3)
     return rmse
