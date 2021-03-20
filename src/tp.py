@@ -1,4 +1,5 @@
 import os
+import sys
 
 import joblib
 import numpy as np
@@ -7,6 +8,8 @@ import pandas as pd
 from twitpersonality.training import datasetUtils, embeddings
 from utils import io as io_utils
 from utils import math as math_utils
+
+sys.path.append(os.path.join(os.getcwd(), "twitpersonality"))
 
 
 def get_profile_twit_pers():
