@@ -1,0 +1,1 @@
+thank much gets moving. changed zkhost use root level works went using. hi using solr cloud zookeeper several shard setup try use solr cloud bring shard setup seems load fine without errors however go web interface click 'cloud exception thrown happens shard shard setup anyone seen thank. thank reply work around available could related number external zookeeper servers

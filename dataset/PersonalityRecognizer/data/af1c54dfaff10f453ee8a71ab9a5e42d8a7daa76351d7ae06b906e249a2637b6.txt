@@ -1,0 +1,1 @@
+new api allows cloudstack copy deltas two snapshots addition cloudstack longer needed plugin scripts plugin scripts mainly try backport code prior even plain vanilla work api cloudstack source code refer xenserver combination xenserver0.00 indicate significance change

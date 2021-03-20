@@ -1,0 +1,1 @@
+hi list requirement producers wait indefinitely kafka broker comes case maintenance network interruptions disk caching front producer producer waits drains producer eventually reconnects functionality working fine kafka producer settings used acks=all would like acknowledge gwen shapiras slideshare http //replaced.url setting derived

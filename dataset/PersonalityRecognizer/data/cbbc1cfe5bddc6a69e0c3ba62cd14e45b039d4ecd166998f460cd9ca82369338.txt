@@ -1,0 +1,1 @@
+newbie solr done everything solr tutorial section using latest versions jdk solr see solr admin page http //replaced.url hit search button receive http error tried run solr tomcat unsuccessful solutions document links appreciated thanks help

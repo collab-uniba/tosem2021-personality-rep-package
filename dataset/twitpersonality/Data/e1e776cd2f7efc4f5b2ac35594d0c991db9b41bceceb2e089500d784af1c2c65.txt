@@ -1,0 +1,1 @@
+hi using solr store time series data log events etc right use solr cloud collection cleaning deleting documents via queries would like know approaches people using way create collection receiving post inexistent inded could use date part index cleanup process would delete old collections

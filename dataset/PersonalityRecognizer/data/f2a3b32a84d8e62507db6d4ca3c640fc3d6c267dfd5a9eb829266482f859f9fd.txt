@@ -1,0 +1,1 @@
+hi still problem projectbuilder followed api change projectbuildingrequest see following setup gist problematic code works version beta-0 gets npe version beta-0 later hints welcome better regards kristian. plugin use maven0 api maven-beta-0 gives maven-rc0 gives maybe used projectbuilder maybe part public api maybe writing plugin regards kristian

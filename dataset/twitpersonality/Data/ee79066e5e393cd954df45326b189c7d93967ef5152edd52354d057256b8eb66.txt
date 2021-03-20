@@ -1,0 +1,1 @@
+hi hilmi tez jars required typically configured though tez.lib.uris config property thanks regards kuhu missing tez jars likely missing custom setup please follow instructions setup client hadoop environment http //replaced.url
