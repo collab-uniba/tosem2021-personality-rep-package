@@ -98,7 +98,7 @@ def compute_big5_scores(emails, raw_results, dict_ver):
 
 def min_max(scores):
     _min = scores[['Openn', 'Consc', 'Extra', 'Agree', 'Neuro']].min(skipna=True)
-    _max = scores[['Openn', 'Consc', 'Extra', 'Agree', 'Neuro']].min(skipna=True)
+    _max = scores[['Openn', 'Consc', 'Extra', 'Agree', 'Neuro']].max(skipna=True)
     return round(_min.min()), round(_max.max())
 
 
