@@ -44,23 +44,23 @@ def normality_test(df_o, df_c, df_e, df_a, df_n, tools):
 def pairwise_correlations(df_o, df_c, df_e, df_a, df_n):
     corr_matrices = dict()
     out = "Openness\n"
-    corr_matrices['Openn'] = df_o.corr(method='pearson')
+    corr_matrices['Openn'] = df_o.corr(method='pearson').round(3)
     out += str(corr_matrices['Openn'])
     corr_matrices['Openn'] = corr_matrices['Openn'].to_dict()
     out += "\n\nConscientiousness\n"
-    corr_matrices['Consc'] = df_c.corr(method='pearson')
+    corr_matrices['Consc'] = df_c.corr(method='pearson').round(3)
     out += str(corr_matrices['Consc'])
     corr_matrices['Consc'] = corr_matrices['Consc'].to_dict()
     out += "\n\nExtraversion\n"
-    corr_matrices['Extra'] = df_e.corr(method='pearson')
+    corr_matrices['Extra'] = df_e.corr(method='pearson').round(3)
     out += str(corr_matrices['Extra'])
     corr_matrices['Extra'] = corr_matrices['Extra'].to_dict()
     out += "\n\nAgreeableness\n"
-    corr_matrices['Agree'] = df_a.corr(method='pearson')
+    corr_matrices['Agree'] = df_a.corr(method='pearson').round(3)
     out += str(corr_matrices['Agree'])
     corr_matrices['Agree'] = corr_matrices['Agree'].to_dict()
     out += "\n\nNeuro\n"
-    corr_matrices['Neuro'] = df_n.corr(method='pearson')
+    corr_matrices['Neuro'] = df_n.corr(method='pearson').round(3)
     out += str(corr_matrices['Neuro'])
     corr_matrices['Neuro'] = corr_matrices['Neuro'].to_dict()
     with open(file='results/phase1/pearson_r.txt', mode='w') as f:
@@ -171,7 +171,7 @@ def update_descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools):
 
 def save_plots(df_o, df_c, df_e, df_a, df_n, tools):
     for tool in tools:
-        path = "results/phase1/{}-violings.png".format(tool)
+        path = "results/phase1/{}-violins.png".format(tool)
         plot_utils.save_violins_plot(df_o[tool], df_c[tool], df_e[tool], df_a[tool], df_n[tool], path)
 
 
