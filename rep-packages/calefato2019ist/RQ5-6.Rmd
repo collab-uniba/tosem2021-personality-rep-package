@@ -1,0 +1,320 @@
+---
+title: "Replication of RQ5-6 regression analyses"
+output: pdf_document
+params:
+  data:  
+    input: file  
+    label: 'LIWC 2007 dataset:'  
+    value: datasets/pers_liwc07_nlon.csv  
+  commits:
+    input: file
+    label: 'Devs commit activities:'
+    value: datasets/commits.csv
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1977)
+options(digits=3)
+```
+```{r load libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(sqldf)
+library(car)
+library(arm)
+library(pscl)
+library(ROCR)
+library(caret)
+library(lmtest)
+library(MASS)
+library(metan)
+```
+
+## Data preparation 
+We load the file with the scores from LIWC and rescale them in the range [1,5].
+```{r load scores, message=FALSE, warning=FALSE}
+personality = read_delim(params$data, ";", escape_double = FALSE)
+personality$openness <- resca(personality,openness, new_min=1, new_max=5)$openness_res 
+personality$conscientiousness <- resca(personality,conscientiousness, new_min=1, new_max=5)$conscientiousness_res  
+personality$extraversion <- resca(personality,extraversion, new_min=1, new_max=5)$extraversion_res  
+personality$agreeableness <- resca(personality,agreeableness, new_min=1, new_max=5)$agreeableness_res  
+personality$neuroticism <- resca(personality,neuroticism, new_min=1, new_max=5)$neuroticism_res
+```
+
+Now we load the commit data and merge them with the personality data.
+```{r load commits, message=FALSE, warning=FALSE}
+commit = read_delim(params$commits, ";", escape_double = FALSE)
+# Find which developers appear in the intersection of the two data sets
+both = intersect(unique(commit$uid), unique(personality$uid))
+# Extract data only for the intersection developers
+# (filter out people with 0 commits)
+commit_both = subset(commit, uid %in% both &
+                       num_authored_commits > 0)
+id_no_cotributors = setdiff(unique(personality$uid), unique(commit$uid))
+pers_zero_contributors = subset(personality, uid %in% id_no_cotributors)
+
+commit.count = sqldf(
+  "select uid, sum(num_authored_commits) as 'total_commits',
+  count(project) as 'total_projects',
+  max(last_authored_datetime) as last_authored_datetime,
+  min(first_integrated_datetime) as first_integrated_datetime
+  from `commit_both` group by uid"
+)
+
+# Filter out people who are still active (have at least one commit
+# during the last 3 months before data collection). We can't know
+# if they will remain one-time contributors or have more commits
+commit.count = subset(commit.count,
+                      last_authored_datetime < as.POSIXct("2017-09-01 20:18:02"))
+
+# Identify people with only one commit total, across all projects.
+# These are the one-timers. The others are more active, even if they
+# have projects with only one commit
+one.timers = subset(commit.count, total_commits == 1)$uid
+multi.timers = subset(commit.count, total_commits > 1)$uid
+oneormore.timers = subset(commit.count, total_commits >= 1)$uid
+
+# Assign a binary label "one_timer" to everyone in the personality
+# data, based on the distinction above
+p = subset(personality, uid %in% one.timers | uid %in% multi.timers)
+p$one_timer = FALSE
+for (i in 1:nrow(p)) {
+  p[i,]$one_timer = p[i,]$uid %in% one.timers
+}
+
+p = subset(personality, uid %in% one.timers | uid %in% multi.timers)
+
+# Compute average personality scores per person, across time and across all projects
+p.aggr = sqldf(
+  "select uid, avg(openness) as 'openness', avg(agreeableness) as 'agreeableness',
+  avg(neuroticism) as 'neuroticism', avg(extraversion) as 'extraversion',
+  avg(conscientiousness) as 'conscientiousness',
+  sum(word_count) as word_count,
+  project
+  from p group by uid"
+)
+
+# Apply the "one_timer" label to this aggregate data set
+p.aggr$one_timer = FALSE
+for (i in 1:nrow(p.aggr)) {
+  p.aggr[i,]$one_timer = p.aggr[i,]$uid %in% one.timers
+}
+# Apply the "mulit_timer" label to this aggregate data set
+p.aggr$m_timer = FALSE
+for (i in 1:nrow(p.aggr)) {
+  p.aggr[i,]$m_timer = p.aggr[i,]$uid %in% multi.timers
+}
+# calculate project age
+proj_age = sqldf::sqldf("select project, project_age from `commit` group by project")
+# add this pieace of info to the aggregated dataset
+p.aggr = p.aggr[p.aggr$project %in% unique(proj_age$project),]
+p.aggr$project_age = 0
+for (i in 1:nrow(p.aggr)) {
+  p.aggr[i,]$project_age = proj_age[ proj_age$project == p.aggr[i,]$project,]$project_age
+}
+```
+## RQ5: logistic regression model of contribution likelihood
+
+We build a simple logistic regression model to explain whether someone is a one-time contributor or not based on their personality score, controlling for the number of words in their emails (which may influence personality).
+Accordingly, the dependent, predicted variable is whether or not a one-time contributor will make further contributions.
+
+First we analyze potential high correlations in the dataset. We drop *neuroticism* and *extraversion* because they shows high correlation (~.07) with *conscientiousness* and *agreeableness*, respectively.
+
+
+```{r corrplot, echo=FALSE}
+# only numerical data
+query = sqldf(
+  "select openness, agreeableness, neuroticism, extraversion, conscientiousness,
+  word_count, project_age
+  from `p.aggr`")
+
+matr <- cor(query, method = "pearson",  use = "complete.obs")
+corrplot::corrplot(matr, type = "lower", method = "number")
+
+```
+
+
+```{r glm, echo=TRUE, message=FALSE, warning=FALSE}
+m = glm(
+  m_timer ~ log(word_count) +
+    project_age +
+    openness +
+    agreeableness +
+    neuroticism +
+    extraversion +
+    conscientiousness,
+  data = p.aggr,
+  family = binomial(link = 'logit')
+)
+```
+
+The results show that only the control variable *project age* has a significant, negative effect.
+```{r glm metrics, warning=FALSE, include=TRUE}
+arm::display(m)
+summary(m)
+car::Anova(m)
+DescTools::PseudoR2(m)
+```
+
+The VIF index confirm that there are no collinarearity issues as all the scores are < 4.
+```{r collinearity}
+car::vif(m)
+```
+
+Finally, we compute the AUC to assess the goodness of the model at predicting whether a one-time contributor will become a contributor (i.e., will keep on contributing afterwards).
+
+```{r AUC, echo=TRUE, message=FALSE, warning=FALSE}
+
+trainIndex <-
+  caret::createDataPartition(p.aggr$m_timer,
+                             p = .7,
+                             list = FALSE,
+                             times = 1)
+p.aggr.train <- p.aggr[trainIndex,]
+p.aggr.test  <- p.aggr[-trainIndex,]
+
+drops <- c("uid", "one_timer")
+p.aggr.train = p.aggr.train[, !(names(p.aggr.train) %in% drops)]
+p.aggr.test = p.aggr.test[, !(names(p.aggr.test) %in% drops)]
+
+m1 = stats::glm(
+  m_timer ~ log(word_count) +
+    openness +
+    agreeableness +
+    neuroticism +
+    extraversion +
+    conscientiousness,
+  data = p.aggr.train,
+  family = binomial(link = 'logit')
+)
+mp <-
+  stats::predict.glm(m1,
+                     newdata = p.aggr.test,
+                     type = "response",
+                     se.fit = TRUE)
+#mean(mp$fit)
+mp1 <- predict(m, newdata = p.aggr.test, type = "response")
+mpr <- prediction(mp1, p.aggr.test$m_timer)
+mprf <- performance(mpr, measure = "tpr", x.measure = "fpr")
+#plot(mprf)
+
+auc <- performance(mpr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
+
+## RQ6 panel data regression model of contribution intensity
+
+In this count data model, the predicted variable is the number of commit per developer.
+
+We prepare the data accordingly.
+
+```{r rq6 data prep, include=FALSE}
+# we ignore projects as the scores per dev id show very little differences across them
+# so we aggregate them
+p_proj = sqldf(
+  "select uid, avg(openness) as 'openness', avg(agreeableness) as 'agreeableness',
+  avg(neuroticism) as 'neuroticism', avg(extraversion) as 'extraversion',
+  avg(conscientiousness) as 'conscientiousness',
+  sum(word_count) as word_count
+  from p group by uid"
+)
+
+id_commit = sqldf(
+  "select uid,
+  project as project_name, is_integrator,
+  project_size, project_age,
+  num_authored_commits as commits_merged, num_integrated_commits,     author_track_record_days
+  from commit_both"
+)
+
+panel_data <- id_commit
+panel_data$openness = 0
+panel_data$conscientiousness = 0
+panel_data$extraversion = 0
+panel_data$agreeableness = 0
+panel_data$neuroticism = 0
+
+panel_data <- merge(id_commit, p_proj, by = c("uid"), all.x = FALSE)
+# use to ensure NAs removal
+panel_data <- panel_data[complete.cases(panel_data),]
+unlist(lapply(panel_data, function(x)
+  any(is.na(x))))
+```
+
+We repeat again the correlation analysis. We find again the same high correlations between *extraversion* and *agreebleness* , and *conscientiousness* and *neuroticism*. We keep the former from each couple because they give better VIF scores as shown below.
+
+
+```{r rq6 corr analysis, echo=FALSE}
+matr <-
+  panel_data[, names(panel_data) %in% c(
+    "openness",
+    "conscientiousness",
+    "extraversion",
+    "agreeableness",
+    "neuroticism",
+    "project_age",
+    "author_track_record_days"
+  )]
+m <- cor(matr, method = "pearson",  use = "complete.obs")
+corrplot::corrplot(m, type = "lower", method = "number")
+```
+
+For a correct count data model analysis, we compare two regression strategies, i.e., Poisson and Negative Binomial and choose the better one according to the Likelihood Ratio Test.
+```{r LRT, include=TRUE}
+mod_poisson <- glm(
+  commits_merged ~
+    #(1 | project_name) + 
+    + log(word_count)
+    + is_integrator
+    + (scale(project_age, center=TRUE, scale = TRUE)) 
+  + (scale(author_track_record_days, center=TRUE, scale = TRUE))
+  + (scale(openness, center=TRUE, scale = TRUE)) 
+  + (scale(conscientiousness, center=TRUE, scale = TRUE)) 
+  + (scale(extraversion, center=TRUE, scale = TRUE)) 
+  #+ (scale(agreeableness, center=TRUE, scale = TRUE)) 
+  #+ (scale(neuroticism, center=TRUE, scale = TRUE))
+  , data = panel_data,
+  family = "poisson"
+)
+
+mod_negbin <- glm.nb(
+  commits_merged ~
+    #(1 | project_name)
+  + log(word_count) 
+  + is_integrator
+  + (scale(project_age, center=TRUE, scale = TRUE)) 
+  + (scale(author_track_record_days, center=TRUE, scale = TRUE))
+  + (scale(openness, center=TRUE, scale = TRUE)) 
+  + (scale(conscientiousness, center=TRUE, scale = TRUE)) 
+  + (scale(extraversion, center=TRUE, scale = TRUE)) 
+  #+ (scale(agreeableness, center=TRUE, scale = TRUE)) 
+  #+ (scale(neuroticism, center=TRUE, scale = TRUE))
+  , data = panel_data
+)
+lmtest::lrtest(mod_poisson, mod_negbin)
+```
+ We find that Model 2 (Negative Binomial) fits better and has not multi-collinearity issues:
+```{r rq6 vif}
+car::vif(mod_negbin)
+```
+Here is a report of the Negative Binomial model fit. We observe that the only predictors related to personality with a significant effect is *conscientiousness* (coefficient=0.123, p<0.05). Hence, the more organized developers make more commits.
+Regarding the control variables, we observe that the authors’ track record (i.e.,
+the number of days between their first and last successful contribution) has a positive and
+significant association (coefficient=0.566) with the number of their merged contributions
+(p<0.001). Similarly, we find a positive and significant association between the response
+variable and the fact that a developer is a core team member who has integrated external
+contributions (coefficient=0.474, p<0.05). Instead, project age has a significant, negative effect
+(-0.087, p<0.05), so the longer the project history, the harder it is to make more commits.
+However, the model fits the data marginally (Pseudo-R2=0.109) but this was expected as we did not
+aim for model completeness but rather at understanding the effects of personality traits.
+
+```{r neg bin model performance, message=FALSE, warning=FALSE, include=TRUE}
+summary(mod_negbin)
+car::Anova(mod_negbin)
+AIC(mod_negbin)
+BIC(mod_negbin)
+DescTools::PseudoR2(mod_negbin, which = "all")
+```
+

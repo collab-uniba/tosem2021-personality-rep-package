@@ -1,0 +1,410 @@
+---
+title: "Replications of RQ2-4"
+output:
+  pdf_document: default
+params:
+  data:  
+    input: file  
+    label: 'LIWC 2007 dataset:'  
+    value: datasets/pers_liwc07_nlon.csv 
+  commits:
+    input: file
+    label: 'Devs commit activities:'
+    value: datasets/commits.csv 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(warn=1)
+options(digits=3)
+set.seed(1977)
+library(readr)
+library(zoo)
+library(grid)
+library(gridExtra)
+library(effsize)
+library(metan)
+library(sqldf)
+library(ggplot2)
+```
+
+## Data preparation 
+We load the file with the scores from LIWC and rescale them in the range [1,5].
+```{r load scores, message=FALSE, warning=FALSE, include=TRUE}
+personality = read_delim(params$data, ";", escape_double = FALSE)
+personality$openness <- resca(personality,openness, 
+                              new_min=1, new_max=5)$openness_res 
+personality$conscientiousness <- resca(personality,conscientiousness, 
+                                       new_min=1, new_max=5)$conscientiousness_res  
+personality$extraversion <- resca(personality,extraversion, 
+                                  new_min=1, new_max=5)$extraversion_res  
+personality$agreeableness <- resca(personality,agreeableness, 
+                                   new_min=1, new_max=5)$agreeableness_res  
+personality$neuroticism <- resca(personality,neuroticism, 
+                                 new_min=1, new_max=5)$neuroticism_res
+```
+
+Now we load the commit data and merge them with the personality data.
+```{r load commits, message=FALSE, warning=FALSE, include=TRUE}
+commit = read_delim(params$commits, ";", escape_double = FALSE)
+
+# Find which developers appear in the intersection of the two data sets
+both = intersect(unique(commit$uid), unique(personality$uid))
+
+# Extract data only for the intersection developers
+# (filter out people with 0 commits)
+commit.both = subset(commit, uid %in% both & 
+                       num_authored_commits > 0)
+# Count total number of projects and total number of commits across all projects, per person
+commit.count = sqldf("select uid, 
+                     sum(num_authored_commits) as 'total_commits', 
+                     count(project) as 'total_projects',
+                     max(last_authored_datetime) as last_authored_datetime,
+                     min(first_integrated_datetime) as first_integrated_datetime
+                     from `commit.both` group by uid")
+
+# Filter out people who are still active (have at least one commit 
+# during the last 3 months before data collection). We can't know
+# if they will remain one-time contributors or have more commits
+commit.count = subset(commit.count, last_authored_datetime < as.POSIXct("2017-09-01 20:18:02"))
+
+# Identify people with only one commit total, across all projects.
+# These are the one-timers. The others are more active, even if they
+# have projects with only one commit
+one.timers = subset(commit.count, total_commits == 1)$uid
+multi.timers = subset(commit.count, total_commits > 1)$uid
+one.or.multi.timers = subset(commit.count, total_commits >= 1)$uid
+
+# Assign a binary label "one_timer" to everyone in the personality 
+# data, based on the distinction above
+p = subset(personality, uid %in% one.timers | uid %in% multi.timers)
+p$one_timer = FALSE
+for (i in 1:nrow(p)){
+  p[i,]$one_timer = p[i,]$uid %in% one.timers
+}
+
+# Compute average personality scores per person, across time and across all projects
+# We will use this simple data in the analysis below, because personality doesn't
+# change much (see boxplots)
+p.aggr = sqldf("select uid, avg(openness) as 'openness', 
+               avg(agreeableness) as 'agreeableness',
+               avg(neuroticism) as 'neuroticism',
+               avg(extraversion) as 'extraversion', 
+               avg(conscientiousness) as 'conscientiousness',
+               sum(word_count) as word_count
+               from p group by uid")
+
+# Apply the "one_timer" binary label to this aggregate data set
+p.aggr$one_timer = FALSE
+for (i in 1:nrow(p.aggr)){
+  p.aggr[i,]$one_timer = p.aggr[i,]$uid %in% one.timers
+}
+# Apply the "multi_timer" binary label to this aggregate data set
+p.aggr$m_timer = FALSE
+for (i in 1:nrow(p.aggr)){
+  p.aggr[i,]$m_timer = p.aggr[i,]$uid %in% multi.timers
+}
+```
+
+## RQ2 Personality of core vs. peripheral developers
+
+We perform a series o Wilcoxon Mann Whitney for unpaired groups, one for each trait. We adjust the significance with Bonferroni due to multiple comparisons. The differences are not significant (adjuste p-values all > 0.05).
+
+```{r core vs peripheral}
+integrations = subset(commit, uid %in% both & num_integrated_commits > 0)
+integration.count = sqldf("select uid, 
+                          min(first_integrated_datetime) as first_integrated_datetime,
+                          max(last_integrated_datetime) as last_integrated_datetime, 
+                          num_integrated_commits
+                          from `integrations` group by uid")
+integration.count = subset(integration.count, last_integrated_datetime < as.POSIXct("2017-09-01 20:18:02"))
+integrators = subset(integration.count, num_integrated_commits >= 1)$uid
+
+# peripheral
+authors_non_integrators = unique(commit.both[!commit.both$uid %in% integrators, ]$uid)
+c_b_n_i = Reduce(intersect, list(commit.both$uid, authors_non_integrators))
+peripheral = personality[personality$uid %in% c_b_n_i, ]
+peripheral = sqldf::sqldf("select uid, 
+                          avg(openness) as openness,
+                          avg(conscientiousness) as conscientiousness,
+                          avg(extraversion) as extraversion,
+                          avg(agreeableness) as agreeableness,
+                          avg(neuroticism) as neuroticism
+                          from peripheral
+                          group by uid")
+# core
+c_b_i = Reduce(intersect, list(commit.both$uid, integrators))
+core = personality[personality$uid %in% c_b_i, ]
+core = sqldf::sqldf("select uid, 
+                          avg(openness) as openness,
+                          avg(conscientiousness) as conscientiousness,
+                          avg(extraversion) as extraversion,
+                          avg(agreeableness) as agreeableness,
+                          avg(neuroticism) as neuroticism
+                          from core
+                          group by uid")
+
+print("**************************")
+print("          openness       ")
+print("**************************")
+wto = wilcox.test(peripheral$openness, core$openness, conf.int=TRUE, paired=FALSE)
+cliff.delta(peripheral$openness, core$openness, return.dm=TRUE)
+
+print("**************************")
+print("    conscientiousness    ")
+print("**************************")
+wtc = wilcox.test(peripheral$conscientiousness, core$conscientiousness, conf.int=TRUE, paired=FALSE)
+cliff.delta(peripheral$conscientiousness, core$conscientiousness, return.dm=TRUE)
+
+print("**************************")
+print("       extraversion      ")
+print("**************************")
+wte = wilcox.test(peripheral$extraversion, core$extraversion, conf.int=TRUE, paired=FALSE)
+cliff.delta(peripheral$extraversion, core$extraversion, return.dm=TRUE)
+
+print("**************************")
+print("       agreeableness     ")
+print("**************************")
+wta = wilcox.test(peripheral$agreeableness, core$agreeableness, conf.int=TRUE, paired=FALSE)
+cliff.delta(peripheral$agreeableness, core$agreeableness, return.dm=TRUE)
+
+print("**************************")
+print("        neuroticism      ")
+print("**************************")
+wtn = wilcox.test(peripheral$neuroticism, core$neuroticism, conf.int=TRUE, paired=FALSE)
+cliff.delta(peripheral$neuroticism, core$neuroticism, return.dm=TRUE)
+
+print("Bonferroni")
+p.adjust(c(wto$p.value, wtc$p.value, wte$p.value, wta$p.value, wtn$p.value), method = "bonferroni")
+
+```
+
+# RQ3 Individual personality differences before and after becoming a project contributor
+We use a series Wilcoxon Signed-Rank test for paired samples (before and after), repeated for each of the five traits.
+All the test returns differences taht are not statistically significant after Bonferroni corrections for multiple comparisons, as can also been observed from the box plots below.
+
+```{r rq3 preparation, message=FALSE, warning=FALSE, include=TRUE}
+df = data.frame(when=character(0), value=integer(0), stringsAsFactors = FALSE)
+
+for (i in 1:length(integrators)){
+  split_index = as.Date(integration.count[integration.count$uid == integrators[i], ]$first_integrated_datetime, format="%Y-%m")
+  p_tot = personality[personality$uid == integrators[i],]
+  p_prev = personality[personality$uid == integrators[i] & as.yearmon(personality$month) < as.yearmon(split_index), ]
+  p_aft = personality[personality$uid == integrators[i] & as.yearmon(personality$month) >= as.yearmon(split_index), ]
+  
+  df[nrow(df)+1, ] = list("O before", mean(p_prev$openness))
+  df[nrow(df)+1, ] = list("O after", mean(p_aft$openness))
+  df[nrow(df)+1, ] = list("C before", mean(p_prev$conscientiousness))
+  df[nrow(df)+1, ] = list("C after", mean(p_aft$conscientiousness))
+  df[nrow(df)+1, ] = list("E before", mean(p_prev$extraversion))
+  df[nrow(df)+1, ] = list("E after", mean(p_aft$extraversion))
+  df[nrow(df)+1, ] = list("A before", mean(p_prev$agreeableness))
+  df[nrow(df)+1, ] = list("A after", mean(p_aft$agreeableness))
+  df[nrow(df)+1, ] = list("N before", mean(p_prev$neuroticism))
+  df[nrow(df)+1, ] = list("N after", mean(p_aft$neuroticism))
+}
+
+
+df_o = df[df$when=="O before" | df$when=="O after", ]
+df_o$when <- factor(df_o$when, levels = c("O before", "O after") )
+ob = wilcox.test(df[df$when=="O before", ]$value, df[df$when=="O after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+
+df_c = df[df$when=="C before" | df$when=="C after", ]
+df_c$when <- factor(df_c$when, levels = c("C before", "C after") )
+cb = wilcox.test(df[df$when=="C before", ]$value, df[df$when=="C after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+
+df_e = df[df$when=="E before" | df$when=="E after", ]
+df_e$when <- factor(df_e$when, levels = c("E before", "E after") )
+eb = wilcox.test(df[df$when=="E before", ]$value, df[df$when=="E after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+
+df_a = df[df$when=="A before" | df$when=="A after", ]
+df_a$when <- factor(df_a$when, levels = c("A before", "A after") )
+ab=wilcox.test(df[df$when=="A before", ]$value, df[df$when=="A after", ]$value, correct = FALSE,  paired = TRUE, conf.int=TRUE)
+
+df_n = df[df$when=="N before" | df$when=="N after", ]
+df_n$when <- factor(df_n$when, levels = c("N before", "N after") )
+nb = wilcox.test(df[df$when=="N before", ]$value, df[df$when=="N after", ]$value, correct = FALSE,  paired = TRUE, conf.int=TRUE)
+
+bplot_o <- ggplot(df_o, aes(x = when, y = value)) +
+  geom_boxplot(colour = "black", fill = "white",
+               size = 0.4, notch = TRUE) +
+  scale_y_continuous(name = "Personality trait score", 
+                     limits=c(1, 5)) +
+  scale_x_discrete(name = "") +
+  ggtitle("Openness") +
+  theme_bw() +
+  stat_boxplot(geom = "errorbar", width = 0.3) +  
+  theme(panel.grid.major = element_blank(),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        text=element_text(),
+        axis.title = element_text(face="bold"),
+        axis.text.x=element_text(colour="black", size = 11),
+        axis.text.y=element_text(colour="black", size = 9),
+        axis.line = element_line(size=0.5, colour = "black"))
+
+
+bplot_c <-ggplot(df_c, aes(x = when, y = value)) +
+  geom_boxplot(colour = "black", fill = "white",
+               size = 0.4, notch = TRUE) +
+  scale_y_continuous(name = "", 
+                     limits=c(1, 5)) +
+  scale_x_discrete(name = "") +
+  ggtitle("Conscientious.") +
+  theme_bw() +
+  stat_boxplot(geom = "errorbar", width = 0.3) +  
+  theme(panel.grid.major = element_blank(),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        text=element_text(),
+        axis.title = element_text(face="bold"),
+        axis.text.x=element_text(colour="black", size = 11),
+        axis.text.y=element_text(colour="black", size = 9),
+        axis.line = element_line(size=0.5, colour = "black"))
+
+
+bplot_e <-ggplot(df_e, aes(x = when, y = value)) +
+  geom_boxplot(colour = "black", fill = "white",
+               size = 0.4, notch = TRUE) +
+  scale_y_continuous(name = "", 
+                     #breaks = seq(0, 1, 25),
+                     limits=c(1, 5)) +
+  scale_x_discrete(name = "") +
+  ggtitle("Extraversion") +
+  theme_bw() +
+  stat_boxplot(geom = "errorbar", width = 0.3) +  
+  theme(panel.grid.major = element_blank(),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        text=element_text(),
+        axis.title = element_text(face="bold"),
+        axis.text.x=element_text(colour="black", size = 11),
+        axis.text.y=element_text(colour="black", size = 9),
+        axis.line = element_line(size=0.5, colour = "black"))
+
+
+bplot_a <-ggplot(df_a, aes(x = when, y = value)) +
+  geom_boxplot(colour = "black", fill = "white",
+               size = 0.4, notch = TRUE) +
+  scale_y_continuous(name = "Personality trait score", 
+                     #breaks = seq(0, 1, 25),
+                     limits=c(1, 5)) +
+  scale_x_discrete(name = "") +
+  ggtitle("Agreeableness") +
+  theme_bw() +
+  stat_boxplot(geom = "errorbar", width = 0.3) +  
+  theme(panel.grid.major = element_blank(),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        text=element_text(),
+        axis.title = element_text(face="bold"),
+        axis.text.x=element_text(colour="black", size = 11),
+        axis.text.y=element_text(colour="black", size = 9),
+        axis.line = element_line(size=0.5, colour = "black"))
+
+
+bplot_n <-ggplot(df_n, aes(x = when, y = value)) +
+  geom_boxplot(colour = "black", fill = "white",
+               size = 0.4, notch = TRUE) +
+  scale_y_continuous(name = "", 
+                     limits=c(1, 5)) +
+  scale_x_discrete(name = "") +
+  ggtitle("Neuroticism") +
+  theme_bw() +
+  stat_boxplot(geom = "errorbar", width = 0.3) +  
+  theme(panel.grid.major = element_blank(),
+        plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+        text=element_text(),
+        axis.title = element_text(face="bold"),
+        axis.text.x=element_text(colour="black", size = 11),
+        axis.text.y=element_text(colour="black", size = 9),
+        axis.line = element_line(size=0.5, colour = "black"))
+```
+```{r boxplots rq3, message=FALSE, warning=FALSE}
+p.adjust(c(ob$p.value, cb$p.value, eb$p.value, ab$p.value, nb$p.value), method = "bonferroni")
+grid.arrange(bplot_o, bplot_c, bplot_e, bplot_a, bplot_n, ncol = 3, nrow=2)
+```
+
+
+## RQ4 — variation with the degree of development activity
+
+Starting from the core and peripheral groups of developers of RQ2, we further split the groups into high vs. low contributors.
+We then perform the unpaired comparisons of the median personality scores between these high vs. low-activity developers within the core and periphearl groups. Results are in shown in the table below. The Wilcoxon Rank Sum tests reveal no cases of statistically significant differences between the pairs of trait distributions (i.e., adjusted p-values > 0.05 after Bonferroni correction).
+
+```{r}
+csbo = sqldf::sqldf("select uid, 
+                         sum(num_authored_commits) as num_authored_commits,
+                         sum(num_integrated_commits) as num_integrated_commits
+                         from `commit.both`
+                         group by uid")
+# split peripheral in low vs higher commit authors around the mean
+Mp = floor(mean(csbo$num_authored_commits))
+peripheral_low = fn$sqldf("select *
+                              from peripheral left join csbo on peripheral.uid = csbo.uid
+                              where num_authored_commits <= $Mp")
+peripheral_high = fn$sqldf("select *
+                              from peripheral left join csbo on peripheral.uid = csbo.uid
+                              where num_authored_commits > $Mp")
+
+
+wtc_hlpo = wilcox.test(peripheral_high$openness, peripheral_low$openness, conf.int=TRUE, paired=FALSE)
+#cliff.delta(peripheral_high$openness, peripheral_low$openness, return.dm=TRUE)
+
+wtc_hlpc = wilcox.test(peripheral_high$conscientiousness, peripheral_low$conscientiousness, conf.int=TRUE, paired=FALSE)
+#cliff.delta(peripheral_high$conscientiousness, peripheral_low$conscientiousness, return.dm=TRUE)
+
+wtc_hlpe = wilcox.test(peripheral_high$extraversion, peripheral_low$extraversion, conf.int=TRUE, paired=FALSE)
+#cliff.delta(peripheral_high$extraversion, peripheral_low$extraversion, return.dm=TRUE)
+
+wtc_hlpa = wilcox.test(peripheral_high$agreeableness, peripheral_low$agreeableness, conf.int=TRUE, paired=FALSE)
+#cliff.delta(peripheral_high$agreeableness, peripheral_low$agreeableness, return.dm=TRUE)
+
+wtc_hlpn = wilcox.test(peripheral_high$neuroticism, peripheral_low$neuroticism, conf.int=TRUE, paired=FALSE)
+#cliff.delta(peripheral_high$neuroticism, peripheral_low$neuroticism, return.dm=TRUE)
+
+adj_p <- p.adjust(c(wtc_hlpo$p.value, wtc_hlpc$p.value, wtc_hlpe$p.value, wtc_hlpa$p.value, wtc_hlpn$p.value), method = "bonferroni")
+
+
+df <- data.frame(matrix(ncol = 5, nrow = 12))
+x <- c("Trait", "W", "p-value ", "CI 95% low", "CI 95% high")
+colnames(df) <- x
+df[1,] <- c("High vs. low commit authors (peripheral)", "", "", "", "")
+df[2,] <- c("openness", as.numeric(wtc_hlpo$statistic), adj_p[1], round(as.numeric(wtc_hlpo$conf.int), 3))
+df[3,] <- c("conscientiousness", as.numeric(wtc_hlpc$statistic), adj_p[2], round(as.numeric(wtc_hlpc$conf.int), 3))
+df[4,] <- c("extraversion", as.numeric(wtc_hlpo$statistic), adj_p[3], round(as.numeric(wtc_hlpe$conf.int), 3))
+df[5,] <- c("agreeableness", as.numeric(wtc_hlpa$statistic), adj_p[4], round(as.numeric(wtc_hlpa$conf.int), 3))
+df[6,] <- c("neuroticism", as.numeric(wtc_hlpn$statistic), adj_p[5], round(as.numeric(wtc_hlpn$conf.int), 3))
+
+
+# split core in low vs higher commit integrators around the mean
+Mc = ceiling(mean(csbo$num_integrated_commits))
+core_low = fn$sqldf("select *
+                        from core left join csbo on core.uid = csbo.uid
+                        where num_authored_commits <= $Mc")
+core_high = fn$sqldf("select *
+                        from core left join csbo on core.uid = csbo.uid
+                        where num_authored_commits > $Mc")
+
+wtc_hlco = wilcox.test(core_high$openness, core_low$openness, conf.int=TRUE, paired=FALSE)
+#cliff.delta(core_high$openness, core_low$openness, return.dm=TRUE)
+
+wtc_hlcc = wilcox.test(core_high$conscientiousness, core_low$conscientiousness, conf.int=TRUE, paired=FALSE)
+#cliff.delta(core_high$conscientiousness, core_low$conscientiousness, return.dm=TRUE)
+
+wtc_hlce = wilcox.test(core_high$extraversion, core_low$extraversion, conf.int=TRUE, paired=FALSE)
+#cliff.delta(core_high$extraversion, core_low$extraversion, return.dm=TRUE)
+
+wtc_hlca = wilcox.test(core_high$agreeableness, core_low$agreeableness, conf.int=TRUE, paired=FALSE)
+#cliff.delta(core_high$agreeableness, core_low$agreeableness, return.dm=TRUE)
+
+wtc_hlcn = wilcox.test(core_high$neuroticism, core_low$neuroticism, conf.int=TRUE, paired=FALSE)
+#cliff.delta(core_high$neuroticism, core_low$neuroticism, return.dm=TRUE)
+
+adj_p<-p.adjust(c(wtc_hlco$p.value, wtc_hlcc$p.value, wtc_hlce$p.value, wtc_hlca$p.value, wtc_hlcn$p.value), method = "bonferroni") 
+
+df[7,] <- c("High vs. low commit authors (core)", "", "", "", "")
+df[8,] <- c("openness", as.numeric(wtc_hlco$statistic), adj_p[1], round(as.numeric(wtc_hlco$conf.int), 3))
+df[9,] <- c("conscientiousness", as.numeric(wtc_hlcc$statistic), adj_p[2], round(as.numeric(wtc_hlcc$conf.int), 3))
+df[10,] <- c("extraversion", as.numeric(wtc_hlce$statistic), adj_p[3], round(as.numeric(wtc_hlce$conf.int), 3))
+df[11,] <- c("agreeableness", as.numeric(wtc_hlca$statistic), adj_p[4], round(as.numeric(wtc_hlca$conf.int), 3))
+df[12,] <- c("neuroticism", as.numeric(wtc_hlcn$statistic), adj_p[5], round(as.numeric(wtc_hlcn$conf.int), 3))
+
+df
+```
+

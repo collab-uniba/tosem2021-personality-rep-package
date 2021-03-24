@@ -1,0 +1,227 @@
+---
+title: 'Replication of RQ1 on claustering analyses from the paper '
+output:
+  pdf_document: default
+params:
+  data:  
+    input: file  
+    label: 'LIWC 2007 dataset:'  
+    value: datasets/pers_liwc07_nlon.csv  
+---
+
+
+```{r Load libraries, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(metan)
+library(dplyr)
+library(sqldf)
+library(nortest)
+library(Hmisc)
+library(FactoMineR)
+library(factoextra) 
+library(psych) # show the loadings
+library(cluster)
+library(ggplot2)
+library(plyr)
+library(sjstats)
+library(PMCMR)
+library(rcompanion)
+library(archetypes)
+```
+
+```{r set options, message=FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1977)
+options(digits=3)
+```
+
+
+## Load input file 
+We load the file with the scores from LIWC and rescale them in the range [1,5].
+
+```{r load input, message=FALSE, warning=FALSE}
+full_personality_df = read_delim(params$data, ";", escape_double = FALSE)
+full_personality_df$openness <- resca(full_personality_df,openness, new_min=1, new_max=5)$openness_res 
+full_personality_df$conscientiousness <- resca(full_personality_df,conscientiousness, new_min=1, new_max=5)$conscientiousness_res  
+full_personality_df$extraversion <- resca(full_personality_df,extraversion, new_min=1, new_max=5)$extraversion_res  
+full_personality_df$agreeableness <- resca(full_personality_df,agreeableness, new_min=1, new_max=5)$agreeableness_res  
+full_personality_df$neuroticism <- resca(full_personality_df,neuroticism, new_min=1, new_max=5)$neuroticism_res
+```
+
+Now we drop the unnecessary columns and, for each trait, we compute the average score per developer. An overview of the data just loaded:
+```{r column selection and avg, echo=TRUE, message=FALSE, warning=FALSE}
+query = sqldf::sqldf(  
+  "select uid, avg(openness) as 'openness',
+    avg(conscientiousness) as 'conscientiousness',
+    avg(extraversion) as 'extraversion',
+    avg(agreeableness) as 'agreeableness',
+    avg(neuroticism) as 'neuroticism'
+  from `full_personality_df` group by uid"
+)
+personality <-
+  dplyr::select(
+    query,
+    openness,
+    conscientiousness,
+    extraversion,
+    agreeableness,
+    neuroticism
+  )
+
+head(personality)
+```
+
+## Preliminary assessment
+We first check if the traits distributions are normally distributed with the Shapiro-Wilk test. Because the p-values for all five tests are < 0.05, the data for all the traits significantly deviate from a normal distribution. Hence, as in the original study, we will use non-parametric tests, which do not assume normality in the distribution of data.
+
+```{r normality test, echo=TRUE, warning=FALSE}
+shapiro.test(personality$openness)
+shapiro.test(personality$conscientiousness)
+shapiro.test(personality$extraversion)
+shapiro.test(personality$agreeableness)
+shapiro.test(personality$neuroticism)
+```
+
+In addition, we perform a couple of tests to assess the suitability of our data for structure detection. To ensure that there is a sufficient proportion
+of variance in our variables that might be caused by underlying factors, we compute the Kaiser-Meyer-Olkin measure, which is equal to 0.5, that is, the minimum acceptable value as suggested in literature; then, we perform Barlett's test of sphericity, which is significant (chi-square=900, p<0.001). These results suggest that our data is suitable for structure detection.
+
+```{r KMO and Barlett tests, echo=TRUE, warning=FALSE}
+# Kaiser, Meyer, Olkin Measure of Sampling Adequacy (0.5 is the minimum)
+round(KMO(personality)$MSA, 1)
+# Barlett's test of sphericity
+cortest.bartlett(personality)
+```
+
+## Factor analysis with PCA
+We perform Principal Component Analysis (PCA) with varimax rotation. PCA is a statistical procedure that converts a set of observations of possibly correlated variables into a set of values of linearly uncorrelated variables, i.e., the principal components. The scree plot below suggest with the elbow method that we can extract either two or three components.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+personality_log <- personality
+res.pca <- FactoMineR::PCA(personality_log, graph = FALSE)
+eigenvalues <- res.pca$eig
+barplot(eigenvalues[, 2], names.arg=1:nrow(eigenvalues), 
+        xlab = "Principal Components",
+        ylab = "Percentage of variances",
+        col ="grey")
+# Add connected line segments to the plot
+lines(x = 1:nrow(eigenvalues), eigenvalues[, 2], 
+      type="b", pch=19, col = "black")
+```
+
+The analysis of the cumulative proportion of variance shows that the three components that account for 96% of the total variance in the data.
+```{r cumulative variance, echo=TRUE, warning=FALSE}
+fit <- princomp(scale(personality_log,  center = TRUE, scale = TRUE), cor = TRUE)
+summary(fit) # print variance accounted for
+```
+
+We complement the screeplot with the analysis of the eigenvalues. The table below shows that only the first two have a value over Kaiser’s criterion of 1, the cut-off point typically used to retain principal components. Eigenvalues, in fact, correspond to the amount of the variation explained by
+each principal component. A component with an eigenvalue > 1 indicates that it accounts for more variance than its accounted by one of the original variables in the dataset.
+
+
+```{r eigenvalues, echo=TRUE, warning=FALSE}
+head(round(eigenvalues[, 1:2], 4)) 
+edf <- as.data.frame(eigenvalues)
+ec <- length(edf[edf$eigenvalue>1, 1]) # cutoff eigenvalues > 1.0 to extract components
+```
+
+Finally, we show the standardized loadings of the five traits on the two principal components. *Agreebleness*, *extraversion*, and *openness* load on the first component, albeit *openness* loading is negative (hence, lack thereof); instead, *conscientiousness* and *neuroticism* load on the second component, but *neuroticism* loading is negative (hence, it indicates emotional stability).
+```{r loadings, echo=TRUE, warning=FALSE}
+principal(personality_log, nfactors=ec, rotate="varimax")$loadings
+```
+
+
+## Cluster analysis
+As PCA is not the only approach followed in literature to group individuals by similar personality profiles, we apply the *k*-means clustering algorithm. We use the ‘elbow’ method to identify the optimal number of cluster from the plot below.
+The ‘elbow’ point corresponds to the smallest *k* value (2 in our case, rather than 6) after which we do not observe a large decrease in the within-group heterogeneity, here measured using the sum of squares, with the increase of the number of clusters.
+
+```{r screeplot k-means, echo=FALSE, warning=FALSE}
+wss <- (nrow(personality_log)-1)*sum(apply(personality_log,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(personality_log,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of clusters",
+     ylab="Within-groups sum of squares")
+
+```
+The table below shows the size of the two clusters obtained with *k*-means. Although the first cluster is twice the size of the second, using other *k* values returns even more imbalance clusters.
+The table also reports the coordinates of the centroids, that is the average position of the elements assigned to a cluster. All the values are z-score standardized, with positive (negative) values above (below) the overall means.
+
+```{r k-means, echo=TRUE, warning=FALSE}
+K <- 2  # elbow 
+myclusters <- kmeans(scale(personality_log, center=TRUE, scale=TRUE), K)
+myclusters$size
+round(myclusters$centers, 2)
+```
+
+
+Because the data are not normally distributed, we perform five nonparametric Kruskal-Wallis (KW) tests to make unpaired comparisons between the two independent score distributions (i.e., the clusters) for each of the five traits. The table below shows the results of the KW tests, after applying Bonferroni corrections of p-values for repeated tests. Each p-value is smaller than 0.001, however the epsilon-squared statistic shows a strong effect size (> 0.36) for *openness* and *extraversion*, a relatively strong effect (> 0.16) for *agreeableness* and *neuroticism*, and a moderate effect size (> 0.04) for *conscientiousness*. Hence, we conclude that there are significant differences among the two clusters. 
+
+
+
+```{r KW, echo=TRUE, message=FALSE, warning=FALSE}
+traits <- c("openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism")
+dfs <- list()
+k <- 1
+for (i in 1:K) {
+  for (j in 1:length(traits)) {
+    assign("trait", traits[j])
+    c_i_j <- dplyr::select(personality_log[myclusters$cluster == i, ], y=trait)
+    c_i_j$trait <- traits[j]
+    c_i_j$cluster <- paste("Cluster", i)
+    dfs[[k]] <- c_i_j
+    k <- k + 1
+  }
+}
+
+df <- do.call(rbind, dfs)
+# multiple pairwaise comparison between traits in the clusters with Bonferroni correction
+for (i in 1:length(traits)) {
+  print("*****************************************************************")
+  print(traits[i])
+  print("*****************************************************************")
+  d = df[df$trait == traits[i], ]
+  d$cluster <- as.factor(d$cluster)
+  kwt <- kruskal.test(d$y, d$cluster)
+  print(kwt)
+  print("Corrected p-value (bonferroni)")
+  out<-p.adjust(kwt$p.value, method = "bonferroni", n=length(traits))
+  print(out)
+  eps <- rcompanion::epsilonSquared(d$y, d$cluster, ci=TRUE, conf = 0.95)
+  print("effect size")
+  print(as.matrix(eps))
+}
+
+# threshold for epsilonSquared interpretation from
+# Rea, L. M., & Parker, R. A. (1992). Designing and conducting survey research:
+# a comprehensive guide.
+
+# 0.00 < 0.01 - Negligible
+# 0.01 < 0.04 - Weak
+# 0.04 < 0.16 - Moderate
+# 0.16 < 0.36 - Relatively strong
+# 0.36 < 0.64 - Strong
+# 0.64 < 1.00 - Very strong
+```
+Finally, by comparing the traits values across the two clusters, we identify two opposite clusters. Accordingly, we label Cluster 1 as the subgroup of the ‘close-minded, impulsive, outgoing, warm, and emotionally unstable,’ since on average they score lower in *openness* and *conscientiousness*, and higher in *extraversion*, *agreeableness*, and *neuroticism*. Cluster 2 is the opposite subgroup of developers who are more ‘open to experience, dependable, solitary, cold, and stable,' given that they exhibit higher average scores in *openness* and *conscientiousness*, and lower scores in *extraversion*, *agreeableness*, and *neuroticism*. 
+
+## Archetypal analsysis
+
+Finally, we perform Archetypal Analysis to extract personality groupings. We use the ‘elbow’ criterion again to identify the
+optimal number of archetypes to extract. From the scree plot below, which shows the fraction of total variance in the data explained by the number of extracted archetypes, we notice that the function plateaus after extracting 2 or 3 archetypes. For the sake of simplicity in characterizing the archetypes, we opt for extracting 2.
+
+```{r archetypal, message=FALSE, warning=FALSE, include=FALSE}
+K_ <- round(sqrt(factorial(length(traits))),0)-1
+arc <- stepArchetypes(personality_log, 
+                      k=1:6, nrep = 20, verbose = TRUE)
+
+```
+```{r scree plot, echo=TRUE, message=FALSE, warning=FALSE}
+screeplot(arc) 
+arc_best <- bestModel(arc[[2]])
+```
+
+Table 10 shows the trait coordinates for both archetypes, standardized for the ease of comparison. We compare the trait values across the three archetypes and obtain results in line with the findings from k-means. In fact, the extracted archetypes can be mapped on the two clusters described above, since we find that Archetype 1 is similar to Cluster 1, grouping developers scoring lower in *openness* and *conscientiousness*, and higher in *extraversion*, *agreeableness*, and *neuroticism*; Archetype 2 is similar to Cluster 2, grouping developers with higher scores in *openness* and *conscientiousness*, and lower scores in *extraversion*, *agreeableness*, and *neuroticism*.
+
+```{r archetypes table, echo=TRUE, warning=FALSE}
+round(scale (parameters(arc_best), center=TRUE, scale=TRUE), 2)
+```
+
