@@ -222,6 +222,7 @@ arc_best <- bestModel(arc[[2]])
 Table 10 shows the trait coordinates for both archetypes, standardized for the ease of comparison. We compare the trait values across the three archetypes and obtain results in line with the findings from k-means. In fact, the extracted archetypes can be mapped on the two clusters described above, since we find that Archetype 1 is similar to Cluster 1, grouping developers scoring lower in *openness* and *conscientiousness*, and higher in *extraversion*, *agreeableness*, and *neuroticism*; Archetype 2 is similar to Cluster 2, grouping developers with higher scores in *openness* and *conscientiousness*, and lower scores in *extraversion*, *agreeableness*, and *neuroticism*.
 
 ```{r archetypes table, echo=TRUE, warning=FALSE}
-round(scale (parameters(arc_best), center=TRUE, scale=TRUE), 2)
+scale(parameters(arc_best)[1,], center=TRUE, scale=TRUE)
+scale(parameters(arc_best)[2,], center=TRUE, scale=TRUE)
 ```
 

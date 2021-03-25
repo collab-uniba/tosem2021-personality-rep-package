@@ -148,31 +148,36 @@ print("**************************")
 print("          openness       ")
 print("**************************")
 wto = wilcox.test(peripheral$openness, core$openness, conf.int=TRUE, paired=FALSE)
-cliff.delta(peripheral$openness, core$openness, return.dm=TRUE)
+wto
+#cliff.delta(peripheral$openness, core$openness, return.dm=TRUE)
 
 print("**************************")
 print("    conscientiousness    ")
 print("**************************")
 wtc = wilcox.test(peripheral$conscientiousness, core$conscientiousness, conf.int=TRUE, paired=FALSE)
-cliff.delta(peripheral$conscientiousness, core$conscientiousness, return.dm=TRUE)
+wtc
+#cliff.delta(peripheral$conscientiousness, core$conscientiousness, return.dm=TRUE)
 
 print("**************************")
 print("       extraversion      ")
 print("**************************")
 wte = wilcox.test(peripheral$extraversion, core$extraversion, conf.int=TRUE, paired=FALSE)
-cliff.delta(peripheral$extraversion, core$extraversion, return.dm=TRUE)
+wte
+#cliff.delta(peripheral$extraversion, core$extraversion, return.dm=TRUE)
 
 print("**************************")
 print("       agreeableness     ")
 print("**************************")
 wta = wilcox.test(peripheral$agreeableness, core$agreeableness, conf.int=TRUE, paired=FALSE)
-cliff.delta(peripheral$agreeableness, core$agreeableness, return.dm=TRUE)
+wta
+#cliff.delta(peripheral$agreeableness, core$agreeableness, return.dm=TRUE)
 
 print("**************************")
 print("        neuroticism      ")
 print("**************************")
 wtn = wilcox.test(peripheral$neuroticism, core$neuroticism, conf.int=TRUE, paired=FALSE)
-cliff.delta(peripheral$neuroticism, core$neuroticism, return.dm=TRUE)
+wtn
+#cliff.delta(peripheral$neuroticism, core$neuroticism, return.dm=TRUE)
 
 print("Bonferroni")
 p.adjust(c(wto$p.value, wtc$p.value, wte$p.value, wta$p.value, wtn$p.value), method = "bonferroni")
@@ -208,23 +213,31 @@ for (i in 1:length(integrators)){
 df_o = df[df$when=="O before" | df$when=="O after", ]
 df_o$when <- factor(df_o$when, levels = c("O before", "O after") )
 ob = wilcox.test(df[df$when=="O before", ]$value, df[df$when=="O after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+ob
 
 df_c = df[df$when=="C before" | df$when=="C after", ]
 df_c$when <- factor(df_c$when, levels = c("C before", "C after") )
 cb = wilcox.test(df[df$when=="C before", ]$value, df[df$when=="C after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+cb
 
 df_e = df[df$when=="E before" | df$when=="E after", ]
 df_e$when <- factor(df_e$when, levels = c("E before", "E after") )
 eb = wilcox.test(df[df$when=="E before", ]$value, df[df$when=="E after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+eb
 
 df_a = df[df$when=="A before" | df$when=="A after", ]
 df_a$when <- factor(df_a$when, levels = c("A before", "A after") )
 ab=wilcox.test(df[df$when=="A before", ]$value, df[df$when=="A after", ]$value, correct = FALSE,  paired = TRUE, conf.int=TRUE)
+ab
 
 df_n = df[df$when=="N before" | df$when=="N after", ]
 df_n$when <- factor(df_n$when, levels = c("N before", "N after") )
 nb = wilcox.test(df[df$when=="N before", ]$value, df[df$when=="N after", ]$value, correct = FALSE,  paired = TRUE, conf.int=TRUE)
+nb
 
+p.adjust(c(ob$p.value, cb$p.value, eb$p.value, ab$p.value, nb$p.value), method = "bonferroni")
+```
+```{r boxplots rq3, message=FALSE, warning=FALSE, echo=FALSE}
 bplot_o <- ggplot(df_o, aes(x = when, y = value)) +
   geom_boxplot(colour = "black", fill = "white",
                size = 0.4, notch = TRUE) +
@@ -315,9 +328,6 @@ bplot_n <-ggplot(df_n, aes(x = when, y = value)) +
         axis.text.x=element_text(colour="black", size = 11),
         axis.text.y=element_text(colour="black", size = 9),
         axis.line = element_line(size=0.5, colour = "black"))
-```
-```{r boxplots rq3, message=FALSE, warning=FALSE}
-p.adjust(c(ob$p.value, cb$p.value, eb$p.value, ab$p.value, nb$p.value), method = "bonferroni")
 grid.arrange(bplot_o, bplot_c, bplot_e, bplot_a, bplot_n, ncol = 3, nrow=2)
 ```
 
