@@ -1,6 +1,3 @@
 [submodule "twitpersonality"]
 	path = twitpersonality
 	url = https://github.com/bateman/twitpersonality
-[submodule "personality-prediction"]
-	path = personality-prediction
-	url = https://github.com/bateman/personality-prediction
