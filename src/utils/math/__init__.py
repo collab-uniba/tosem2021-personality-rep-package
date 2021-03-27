@@ -1,6 +1,31 @@
+import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+import statsmodels.api as sm
 from scipy.stats import shapiro
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+
+def qq_plot(tool, o, c, e, a, n):
+    fig = plt.figure()
+    fig.suptitle("QQ plot for {} predictions".format(tool))
+    fig.tight_layout()
+    fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.5, hspace=0.5)
+    ax_o = fig.add_subplot(2, 3, 1)
+    ax_o.set_title("Openness")
+    sm.qqplot(o, ax=ax_o, line='45')
+    ax_c = fig.add_subplot(2, 3, 2)
+    ax_c.set_title("Conscientiousness")
+    sm.qqplot(c, ax=ax_c, line='45')
+    ax_e = fig.add_subplot(2, 3, 3)
+    ax_e.set_title("Extraversion")
+    sm.qqplot(e, ax=ax_e, line='45')
+    ax_a = fig.add_subplot(2, 3, 4)
+    ax_a.set_title("Agreeableness")
+    sm.qqplot(a, ax=ax_a, line='45')
+    ax_n = fig.add_subplot(2, 3, 5)
+    ax_n.set_title("Neuroticism")
+    sm.qqplot(n, ax=ax_n, line='45')
+    fig.savefig("results/phase1/qqplot_{}.png".format(tool), format="png")
 
 
 def test_normal_distribution(data, alpha=0.05):
@@ -8,7 +33,7 @@ def test_normal_distribution(data, alpha=0.05):
     if p > alpha:
         is_normal = True
     else:
-        is_normal = True
+        is_normal = False
     return is_normal, stat, p
 
 

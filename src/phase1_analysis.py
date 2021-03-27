@@ -5,7 +5,7 @@ import pandas as pd
 
 from utils import io as io_utils
 from utils import plot as plot_utils
-from utils.math import test_normal_distribution as normal
+from utils.math import test_normal_distribution as normal, qq_plot
 
 
 def build_dataframe(tool_resfile_dict, gs_df):
@@ -47,6 +47,9 @@ def normality_test(df_o, df_c, df_e, df_a, df_n, tools):
             f.write("Agreeableness normally distributed? {} (W={:.3f}, p={:.3f})\n".format(is_normal, stat, p))
             is_normal, stat, p = normal(df_n[tool])
             f.write("Neuroticism normally distributed? {} (W={:.3f}, p={:.3f})\n\n".format(is_normal, stat, p))
+            # QQ plot
+            qq_plot(tool, df_o[tool], df_c[tool], df_e[tool], df_a[tool], df_n[tool])
+
 
 
 def pairwise_correlations(df_o, df_c, df_e, df_a, df_n):
@@ -114,32 +117,34 @@ def mailcorpus_stats():
 
 
 def descriptive_stats(df_o, df_c, df_e, df_a, df_n, tools):
-    with open(file="results/phase1/descriptive_stats.txt", mode="a+") as f:
+    with open(file="results/phase1/descriptive_stats.txt", mode="w") as f:
         for tool in tools:
             openness = df_o[tool].values
             conscientiousness = df_c[tool].values
             extraversion = df_e[tool].values
             agreeableness = df_a[tool].values
             neuroticism = df_n[tool].values
-            f.write("\n\n{}\n".format(tool))
-            f.write("Mean Openness {:.2f} (Min {}, Max{}, SD {:.2f})\n".format(np.mean(openness), min(openness),
-                                                                               max(openness), np.std(openness)))
-            f.write("Mean Conscientiousness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(conscientiousness),
-                                                                                         min(conscientiousness),
-                                                                                         max(conscientiousness),
-                                                                                         np.std(conscientiousness)))
-            f.write("Mean Extraversion {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(extraversion),
-                                                                                    min(extraversion),
-                                                                                    max(extraversion),
-                                                                                    np.std(extraversion)))
-            f.write("Mean Agreeableness {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(agreeableness),
-                                                                                     min(agreeableness),
-                                                                                     max(agreeableness),
-                                                                                     np.std(agreeableness)))
-            f.write("Mean Neuroticism {:.2f} (Min {}, Max {}, SD {:.2f})\n".format(np.mean(neuroticism),
-                                                                                   min(neuroticism),
-                                                                                   max(neuroticism),
-                                                                                   np.std(neuroticism)))
+            f.write("{}\n\n".format(tool))
+            f.write(
+                "Mean Openness {:.2f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(np.mean(openness), min(openness),
+                                                                                    max(openness), np.std(openness)))
+            f.write(
+                "Mean Conscientiousness {:.2f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(np.mean(conscientiousness),
+                                                                                             min(conscientiousness),
+                                                                                             max(conscientiousness),
+                                                                                             np.std(conscientiousness)))
+            f.write("Mean Extraversion {:.2f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(np.mean(extraversion),
+                                                                                            min(extraversion),
+                                                                                            max(extraversion),
+                                                                                            np.std(extraversion)))
+            f.write("Mean Agreeableness {:.2f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(np.mean(agreeableness),
+                                                                                             min(agreeableness),
+                                                                                             max(agreeableness),
+                                                                                             np.std(agreeableness)))
+            f.write("Mean Neuroticism {:.2f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(np.mean(neuroticism),
+                                                                                           min(neuroticism),
+                                                                                           max(neuroticism),
+                                                                                           np.std(neuroticism)))
 
 
 def save_plots(df_o, df_c, df_e, df_a, df_n, tools):
