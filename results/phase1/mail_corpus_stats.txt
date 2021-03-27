@@ -1,0 +1,5 @@
+No. of subjects: 50
+Total no. of emails: 631
+Total no. of words: 22593
+Avg. no. of emails per user 13 (SD 30.89)
+Avg. no. words per user 461 (SD 1092.06)
