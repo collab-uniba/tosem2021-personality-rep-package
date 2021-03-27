@@ -51,32 +51,31 @@ def normality_test(df_o, df_c, df_e, df_a, df_n, tools):
             qq_plot(tool, df_o[tool], df_c[tool], df_e[tool], df_a[tool], df_n[tool])
 
 
-
-def pairwise_correlations(df_o, df_c, df_e, df_a, df_n):
+def pairwise_correlations(df_o, df_c, df_e, df_a, df_n, method):
     corr_matrices = dict()
     out = "Openness\n"
-    corr_matrices['Openn'] = df_o.corr(method='pearson').round(3)
+    corr_matrices['Openn'] = df_o.corr(method=method).round(3)
     out += str(corr_matrices['Openn'])
     corr_matrices['Openn'] = corr_matrices['Openn'].to_dict()
     out += "\n\nConscientiousness\n"
-    corr_matrices['Consc'] = df_c.corr(method='pearson').round(3)
+    corr_matrices['Consc'] = df_c.corr(method=method).round(3)
     out += str(corr_matrices['Consc'])
     corr_matrices['Consc'] = corr_matrices['Consc'].to_dict()
     out += "\n\nExtraversion\n"
-    corr_matrices['Extra'] = df_e.corr(method='pearson').round(3)
+    corr_matrices['Extra'] = df_e.corr(method=method).round(3)
     out += str(corr_matrices['Extra'])
     corr_matrices['Extra'] = corr_matrices['Extra'].to_dict()
     out += "\n\nAgreeableness\n"
-    corr_matrices['Agree'] = df_a.corr(method='pearson').round(3)
+    corr_matrices['Agree'] = df_a.corr(method=method).round(3)
     out += str(corr_matrices['Agree'])
     corr_matrices['Agree'] = corr_matrices['Agree'].to_dict()
     out += "\n\nNeuro\n"
-    corr_matrices['Neuro'] = df_n.corr(method='pearson').round(3)
+    corr_matrices['Neuro'] = df_n.corr(method=method).round(3)
     out += str(corr_matrices['Neuro'])
     corr_matrices['Neuro'] = corr_matrices['Neuro'].to_dict()
-    with open(file='results/phase1/pearson_r.txt', mode='w') as f:
+    with open(file='results/phase1/{}.txt'.format(method), mode='w') as f:
         f.write(out)
-    with open(file='results/phase1/pearson_r.json', mode='w') as js_f:
+    with open(file='results/phase1/{}.json'.format(method), mode='w') as js_f:
         json.dump(corr_matrices, js_f, indent=4)
 
 
@@ -168,5 +167,10 @@ if __name__ == '__main__':
         df_o, df_c, df_e, df_a, df_n, col_names = build_dataframe(tools, goldstd_df)
         descriptive_stats(df_o, df_c, df_e, df_a, df_n, col_names)
         normality_test(df_o, df_c, df_e, df_a, df_n, col_names)
-        pairwise_correlations(df_o, df_c, df_e, df_a, df_n)
+        # With large sample, where Pearson normality assumption is violated, this is not an issue.
+        # With small samples though, Spearman's correlation should be preferred.
+        # Source: On the Effects of Non-Normality on the Distribution of the Sample Product-Moment
+        #         Correlation Coefficient (Kowalski, 1975), url: www.jstor.org/pss/2346598
+        pairwise_correlations(df_o, df_c, df_e, df_a, df_n, method="pearson")
+        pairwise_correlations(df_o, df_c, df_e, df_a, df_n, method="spearman")
         save_plots(df_o, df_c, df_e, df_a, df_n, col_names)
