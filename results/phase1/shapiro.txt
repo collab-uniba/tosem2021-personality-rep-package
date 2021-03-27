@@ -1,35 +1,35 @@
 GOLDSTD
-Openness normally distributed? True (W=0.895, p=0.000)
+Openness normally distributed? False (W=0.895, p=0.000)
 Conscientiousness normally distributed? True (W=0.966, p=0.162)
 Extraversion normally distributed? True (W=0.974, p=0.337)
-Agreeableness normally distributed? True (W=0.932, p=0.008)
+Agreeableness normally distributed? False (W=0.932, p=0.008)
 Neuroticism normally distributed? True (W=0.981, p=0.600)
 
 LIWC
-Openness normally distributed? True (W=0.900, p=0.001)
-Conscientiousness normally distributed? True (W=0.818, p=0.000)
-Extraversion normally distributed? True (W=0.768, p=0.000)
-Agreeableness normally distributed? True (W=0.793, p=0.000)
-Neuroticism normally distributed? True (W=0.893, p=0.000)
+Openness normally distributed? False (W=0.900, p=0.001)
+Conscientiousness normally distributed? False (W=0.818, p=0.000)
+Extraversion normally distributed? False (W=0.768, p=0.000)
+Agreeableness normally distributed? False (W=0.793, p=0.000)
+Neuroticism normally distributed? False (W=0.893, p=0.000)
 
 PI
-Openness normally distributed? True (W=0.943, p=0.020)
-Conscientiousness normally distributed? True (W=0.952, p=0.043)
+Openness normally distributed? False (W=0.943, p=0.020)
+Conscientiousness normally distributed? False (W=0.952, p=0.043)
 Extraversion normally distributed? True (W=0.970, p=0.253)
-Agreeableness normally distributed? True (W=0.936, p=0.010)
-Neuroticism normally distributed? True (W=0.928, p=0.005)
+Agreeableness normally distributed? False (W=0.936, p=0.010)
+Neuroticism normally distributed? False (W=0.928, p=0.005)
 
 PR
 Openness normally distributed? True (W=0.967, p=0.178)
 Conscientiousness normally distributed? True (W=0.977, p=0.451)
-Extraversion normally distributed? True (W=0.951, p=0.039)
+Extraversion normally distributed? False (W=0.951, p=0.039)
 Agreeableness normally distributed? True (W=0.992, p=0.985)
 Neuroticism normally distributed? True (W=0.974, p=0.332)
 
 TP
-Openness normally distributed? True (W=0.925, p=0.004)
-Conscientiousness normally distributed? True (W=0.782, p=0.000)
-Extraversion normally distributed? True (W=0.842, p=0.000)
-Agreeableness normally distributed? True (W=0.720, p=0.000)
+Openness normally distributed? False (W=0.925, p=0.004)
+Conscientiousness normally distributed? False (W=0.782, p=0.000)
+Extraversion normally distributed? False (W=0.842, p=0.000)
+Agreeableness normally distributed? False (W=0.720, p=0.000)
 Neuroticism normally distributed? True (W=1.000, p=1.000)
 
