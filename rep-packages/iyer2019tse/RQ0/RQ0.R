@@ -14,6 +14,10 @@ library(IRdisplay)
 library(MuMIn)
 library(corrplot)
 
+print("***************************************************")
+print("*                     RQ0                         *")
+print("***************************************************")
+
 # config
 set.seed(1977)
 options(digits=3)
@@ -21,8 +25,11 @@ options(digits=3)
 # load data
 args = commandArgs(trailingOnly=TRUE)
 infile <- if (length(args) < 1) 'data/final.csv' else args[1];
+TEST <- if (length(args) == 2) TRUE else FALSE;
+print("Loading data")
 data <- read.csv(infile)
 
+print("Rescaling and normalizing data")
 # normalize
 data$total_churn <- scale(log(data$total_churn + 1))
 data$num_comments <- scale(bcPower(data$num_comments + 1,-1))
@@ -73,7 +80,15 @@ data_pearson$diff_agreeableness_abs <- NULL
 data_pearson$diff_neuroticism_abs <- NULL
 cor(data_pearson, method = "spearman")
 
-# data_s = dplyr::sample_n(data, 5000)
+if(TEST == TRUE){
+  data_s = dplyr::sample_n(data, 500)
+  print("Working with a test subsample")
+} else {
+  data_s = data
+  print("Working with the full dataset")
+} 
+
+print("Running logistic regression")
 # logit from Iyer et al.
 rq0 <- glmer(accepted ~ test_file 
              + total_churn  
@@ -92,7 +107,7 @@ rq0 <- glmer(accepted ~ test_file
              + (1|project_name) 
              + (1|requester) 
              + (1|closer), 
-             data=data, family=binomial, 
+             data=data_s, family=binomial, 
              control = glmerControl(optimizer = "nloptwrap", calc.derivs = FALSE, optCtrl = list(maxeval = 300)));
 
 # performance
