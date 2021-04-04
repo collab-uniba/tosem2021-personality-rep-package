@@ -131,9 +131,9 @@ dmypy.json
 .idea
 
 # Project-specific exclusions
-/dataset/goldstandard/mailcorpus.json
-/dataset/goldstandard/ipip-scores.json
-/dataset/goldstandard/address_list.txt
+/dataset/raw/mailcorpus.json
+/dataset/raw/ipip-scores.json
+/dataset/raw/address_list.txt
 /src/utils/pi/
 /rep-packages/iyer2019tse/data/*.csv
 *.rda
