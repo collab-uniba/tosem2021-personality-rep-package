@@ -137,3 +137,5 @@ dmypy.json
 /src/utils/pi/
 /rep-packages/iyer2019tse/data/*.csv
 *.rda
+.RData
+.Rhistory
