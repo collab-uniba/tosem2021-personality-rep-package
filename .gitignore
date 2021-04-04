@@ -109,7 +109,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.env-*/
 
 # Spyder project settings
 .spyderproject
@@ -130,3 +129,11 @@ dmypy.json
 .pyre/
 .DS_Store
 .idea
+
+# Project-specific exclusions
+/dataset/goldstandard/mailcorpus.json
+/dataset/goldstandard/ipip-scores.json
+/dataset/goldstandard/address_list.txt
+/src/utils/pi/
+/rep-packages/iyer2019tse/data/*.csv
+*.rda
