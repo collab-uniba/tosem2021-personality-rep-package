@@ -34,11 +34,16 @@ library(metan)
 We load the file with the scores from LIWC and rescale them in the range [1,5].
 ```{r load scores, message=FALSE, warning=FALSE}
 personality = read_delim(params$data, ";", escape_double = FALSE)
-personality$openness <- resca(personality,openness, new_min=1, new_max=5)$openness_res 
-personality$conscientiousness <- resca(personality,conscientiousness, new_min=1, new_max=5)$conscientiousness_res  
-personality$extraversion <- resca(personality,extraversion, new_min=1, new_max=5)$extraversion_res  
-personality$agreeableness <- resca(personality,agreeableness, new_min=1, new_max=5)$agreeableness_res  
-personality$neuroticism <- resca(personality,neuroticism, new_min=1, new_max=5)$neuroticism_res
+personality$openness <- resca(personality,openness, 
+                              new_min=1, new_max=5)$openness_res 
+personality$conscientiousness <- resca(personality,conscientiousness, 
+                                       new_min=1, new_max=5)$conscientiousness_res  
+personality$extraversion <- resca(personality,extraversion, 
+                                  new_min=1, new_max=5)$extraversion_res  
+personality$agreeableness <- resca(personality,agreeableness, 
+                                   new_min=1, new_max=5)$agreeableness_res  
+personality$neuroticism <- resca(personality,neuroticism, 
+                                 new_min=1, new_max=5)$neuroticism_res
 ```
 
 Now we load the commit data and merge them with the personality data.
@@ -86,8 +91,10 @@ p = subset(personality, uid %in% one.timers | uid %in% multi.timers)
 
 # Compute average personality scores per person, across time and across all projects
 p.aggr = sqldf(
-  "select uid, avg(openness) as 'openness', avg(agreeableness) as 'agreeableness',
-  avg(neuroticism) as 'neuroticism', avg(extraversion) as 'extraversion',
+  "select uid, avg(openness) as 'openness', 
+  avg(agreeableness) as 'agreeableness',
+  avg(neuroticism) as 'neuroticism', 
+  avg(extraversion) as 'extraversion',
   avg(conscientiousness) as 'conscientiousness',
   sum(word_count) as word_count,
   project
@@ -105,12 +112,15 @@ for (i in 1:nrow(p.aggr)) {
   p.aggr[i,]$m_timer = p.aggr[i,]$uid %in% multi.timers
 }
 # calculate project age
-proj_age = sqldf::sqldf("select project, project_age from `commit` group by project")
+proj_age = sqldf::sqldf("select project, project_age 
+                        from `commit` 
+                        group by project")
 # add this pieace of info to the aggregated dataset
 p.aggr = p.aggr[p.aggr$project %in% unique(proj_age$project),]
 p.aggr$project_age = 0
 for (i in 1:nrow(p.aggr)) {
-  p.aggr[i,]$project_age = proj_age[ proj_age$project == p.aggr[i,]$project,]$project_age
+  p.aggr[i,]$project_age = 
+    proj_age[proj_age$project == p.aggr[i,]$project,]$project_age
 }
 ```
 ## RQ5: logistic regression model of contribution likelihood
@@ -118,14 +128,19 @@ for (i in 1:nrow(p.aggr)) {
 We build a simple logistic regression model to explain whether someone is a one-time contributor or not based on their personality score, controlling for the number of words in their emails (which may influence personality).
 Accordingly, the dependent, predicted variable is whether or not a one-time contributor will make further contributions.
 
-First we analyze potential high correlations in the dataset. We drop *neuroticism* and *extraversion* because they shows high correlation (~.07) with *conscientiousness* and *agreeableness*, respectively.
+First we analyze potential high correlations in the dataset. We drop *neuroticism* and *extraversion* because they shows high correlation (~70) with *conscientiousness* and *agreeableness*, respectively.
 
 
 ```{r corrplot, echo=FALSE}
 # only numerical data
 query = sqldf(
-  "select openness, agreeableness, neuroticism, extraversion, conscientiousness,
-  word_count, project_age
+  "select openness, 
+  agreeableness, 
+  neuroticism, 
+  extraversion, 
+  conscientiousness,
+  word_count, 
+  project_age
   from `p.aggr`")
 
 matr <- cor(query, method = "pearson",  use = "complete.obs")
@@ -139,8 +154,8 @@ m = glm(
   m_timer ~ log(word_count) +
     project_age +
     openness +
-    agreeableness +
-    neuroticism +
+    #agreeableness +
+    #neuroticism +
     extraversion +
     conscientiousness,
   data = p.aggr,
@@ -180,8 +195,8 @@ p.aggr.test = p.aggr.test[, !(names(p.aggr.test) %in% drops)]
 m1 = stats::glm(
   m_timer ~ log(word_count) +
     openness +
-    agreeableness +
-    neuroticism +
+    #agreeableness +
+    #neuroticism +
     extraversion +
     conscientiousness,
   data = p.aggr.train,
@@ -214,8 +229,10 @@ We prepare the data accordingly.
 # we ignore projects as the scores per dev id show very little differences across them
 # so we aggregate them
 p_proj = sqldf(
-  "select uid, avg(openness) as 'openness', avg(agreeableness) as 'agreeableness',
-  avg(neuroticism) as 'neuroticism', avg(extraversion) as 'extraversion',
+  "select uid, avg(openness) as 'openness', 
+  avg(agreeableness) as 'agreeableness',
+  avg(neuroticism) as 'neuroticism', 
+  avg(extraversion) as 'extraversion',
   avg(conscientiousness) as 'conscientiousness',
   sum(word_count) as word_count
   from p group by uid"
@@ -223,9 +240,13 @@ p_proj = sqldf(
 
 id_commit = sqldf(
   "select uid,
-  project as project_name, is_integrator,
-  project_size, project_age,
-  num_authored_commits as commits_merged, num_integrated_commits,     author_track_record_days
+  project as project_name, 
+  is_integrator,
+  project_size, 
+  project_age,
+  num_authored_commits as commits_merged, 
+  num_integrated_commits,     
+  author_track_record_days
   from commit_both"
 )
 
@@ -265,8 +286,7 @@ For a correct count data model analysis, we compare two regression strategies, i
 ```{r LRT, include=TRUE}
 mod_poisson <- glm(
   commits_merged ~
-    #(1 | project_name) + 
-    + log(word_count)
+      log(word_count)
     + is_integrator
     + (scale(project_age, center=TRUE, scale = TRUE)) 
   + (scale(author_track_record_days, center=TRUE, scale = TRUE))
@@ -281,8 +301,7 @@ mod_poisson <- glm(
 
 mod_negbin <- glm.nb(
   commits_merged ~
-    #(1 | project_name)
-  + log(word_count) 
+    log(word_count) 
   + is_integrator
   + (scale(project_age, center=TRUE, scale = TRUE)) 
   + (scale(author_track_record_days, center=TRUE, scale = TRUE))

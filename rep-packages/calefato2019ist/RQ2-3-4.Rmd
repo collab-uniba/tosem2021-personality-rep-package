@@ -66,7 +66,8 @@ commit.count = sqldf("select uid,
 # Filter out people who are still active (have at least one commit 
 # during the last 3 months before data collection). We can't know
 # if they will remain one-time contributors or have more commits
-commit.count = subset(commit.count, last_authored_datetime < as.POSIXct("2017-09-01 20:18:02"))
+commit.count = subset(commit.count, 
+                      last_authored_datetime < as.POSIXct("2017-09-01 20:18:02"))
 
 # Identify people with only one commit total, across all projects.
 # These are the one-timers. The others are more active, even if they
@@ -192,10 +193,14 @@ All the test returns differences taht are not statistically significant after Bo
 df = data.frame(when=character(0), value=integer(0), stringsAsFactors = FALSE)
 
 for (i in 1:length(integrators)){
-  split_index = as.Date(integration.count[integration.count$uid == integrators[i], ]$first_integrated_datetime, format="%Y-%m")
+  split_index = 
+    as.Date(integration.count[integration.count$uid == integrators[i], ]$first_integrated_datetime, 
+            format="%Y-%m")
   p_tot = personality[personality$uid == integrators[i],]
-  p_prev = personality[personality$uid == integrators[i] & as.yearmon(personality$month) < as.yearmon(split_index), ]
-  p_aft = personality[personality$uid == integrators[i] & as.yearmon(personality$month) >= as.yearmon(split_index), ]
+  p_prev = 
+    personality[personality$uid == integrators[i] & as.yearmon(personality$month) < as.yearmon(split_index), ]
+  p_aft = 
+    personality[personality$uid == integrators[i] & as.yearmon(personality$month) >= as.yearmon(split_index), ]
   
   df[nrow(df)+1, ] = list("O before", mean(p_prev$openness))
   df[nrow(df)+1, ] = list("O after", mean(p_aft$openness))
@@ -212,27 +217,32 @@ for (i in 1:length(integrators)){
 
 df_o = df[df$when=="O before" | df$when=="O after", ]
 df_o$when <- factor(df_o$when, levels = c("O before", "O after") )
-ob = wilcox.test(df[df$when=="O before", ]$value, df[df$when=="O after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+ob = wilcox.test(df[df$when=="O before", ]$value, df[df$when=="O after", ]$value, 
+                 correct = FALSE, paired = TRUE, conf.int=TRUE)
 ob
 
 df_c = df[df$when=="C before" | df$when=="C after", ]
 df_c$when <- factor(df_c$when, levels = c("C before", "C after") )
-cb = wilcox.test(df[df$when=="C before", ]$value, df[df$when=="C after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+cb = wilcox.test(df[df$when=="C before", ]$value, df[df$when=="C after", ]$value, 
+                 correct = FALSE, paired = TRUE, conf.int=TRUE)
 cb
 
 df_e = df[df$when=="E before" | df$when=="E after", ]
 df_e$when <- factor(df_e$when, levels = c("E before", "E after") )
-eb = wilcox.test(df[df$when=="E before", ]$value, df[df$when=="E after", ]$value, correct = FALSE, paired = TRUE, conf.int=TRUE)
+eb = wilcox.test(df[df$when=="E before", ]$value, df[df$when=="E after", ]$value, 
+                 correct = FALSE, paired = TRUE, conf.int=TRUE)
 eb
 
 df_a = df[df$when=="A before" | df$when=="A after", ]
 df_a$when <- factor(df_a$when, levels = c("A before", "A after") )
-ab=wilcox.test(df[df$when=="A before", ]$value, df[df$when=="A after", ]$value, correct = FALSE,  paired = TRUE, conf.int=TRUE)
+ab=wilcox.test(df[df$when=="A before", ]$value, df[df$when=="A after", ]$value, 
+               correct = FALSE,  paired = TRUE, conf.int=TRUE)
 ab
 
 df_n = df[df$when=="N before" | df$when=="N after", ]
 df_n$when <- factor(df_n$when, levels = c("N before", "N after") )
-nb = wilcox.test(df[df$when=="N before", ]$value, df[df$when=="N after", ]$value, correct = FALSE,  paired = TRUE, conf.int=TRUE)
+nb = wilcox.test(df[df$when=="N before", ]$value, df[df$when=="N after", ]$value, 
+                 correct = FALSE,  paired = TRUE, conf.int=TRUE)
 nb
 
 p.adjust(c(ob$p.value, cb$p.value, eb$p.value, ab$p.value, nb$p.value), method = "bonferroni")
@@ -353,22 +363,28 @@ peripheral_high = fn$sqldf("select *
                               where num_authored_commits > $Mp")
 
 
-wtc_hlpo = wilcox.test(peripheral_high$openness, peripheral_low$openness, conf.int=TRUE, paired=FALSE)
+wtc_hlpo = wilcox.test(peripheral_high$openness, peripheral_low$openness, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(peripheral_high$openness, peripheral_low$openness, return.dm=TRUE)
 
-wtc_hlpc = wilcox.test(peripheral_high$conscientiousness, peripheral_low$conscientiousness, conf.int=TRUE, paired=FALSE)
+wtc_hlpc = wilcox.test(peripheral_high$conscientiousness, peripheral_low$conscientiousness, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(peripheral_high$conscientiousness, peripheral_low$conscientiousness, return.dm=TRUE)
 
-wtc_hlpe = wilcox.test(peripheral_high$extraversion, peripheral_low$extraversion, conf.int=TRUE, paired=FALSE)
+wtc_hlpe = wilcox.test(peripheral_high$extraversion, peripheral_low$extraversion, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(peripheral_high$extraversion, peripheral_low$extraversion, return.dm=TRUE)
 
-wtc_hlpa = wilcox.test(peripheral_high$agreeableness, peripheral_low$agreeableness, conf.int=TRUE, paired=FALSE)
+wtc_hlpa = wilcox.test(peripheral_high$agreeableness, peripheral_low$agreeableness, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(peripheral_high$agreeableness, peripheral_low$agreeableness, return.dm=TRUE)
 
-wtc_hlpn = wilcox.test(peripheral_high$neuroticism, peripheral_low$neuroticism, conf.int=TRUE, paired=FALSE)
+wtc_hlpn = wilcox.test(peripheral_high$neuroticism, peripheral_low$neuroticism, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(peripheral_high$neuroticism, peripheral_low$neuroticism, return.dm=TRUE)
 
-adj_p <- p.adjust(c(wtc_hlpo$p.value, wtc_hlpc$p.value, wtc_hlpe$p.value, wtc_hlpa$p.value, wtc_hlpn$p.value), method = "bonferroni")
+adj_p <- p.adjust(c(wtc_hlpo$p.value, wtc_hlpc$p.value, wtc_hlpe$p.value, wtc_hlpa$p.value, wtc_hlpn$p.value), 
+                  method = "bonferroni")
 
 
 df <- data.frame(matrix(ncol = 5, nrow = 12))
@@ -391,22 +407,28 @@ core_high = fn$sqldf("select *
                         from core left join csbo on core.uid = csbo.uid
                         where num_authored_commits > $Mc")
 
-wtc_hlco = wilcox.test(core_high$openness, core_low$openness, conf.int=TRUE, paired=FALSE)
+wtc_hlco = wilcox.test(core_high$openness, core_low$openness, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(core_high$openness, core_low$openness, return.dm=TRUE)
 
-wtc_hlcc = wilcox.test(core_high$conscientiousness, core_low$conscientiousness, conf.int=TRUE, paired=FALSE)
+wtc_hlcc = wilcox.test(core_high$conscientiousness, core_low$conscientiousness, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(core_high$conscientiousness, core_low$conscientiousness, return.dm=TRUE)
 
-wtc_hlce = wilcox.test(core_high$extraversion, core_low$extraversion, conf.int=TRUE, paired=FALSE)
+wtc_hlce = wilcox.test(core_high$extraversion, core_low$extraversion, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(core_high$extraversion, core_low$extraversion, return.dm=TRUE)
 
-wtc_hlca = wilcox.test(core_high$agreeableness, core_low$agreeableness, conf.int=TRUE, paired=FALSE)
+wtc_hlca = wilcox.test(core_high$agreeableness, core_low$agreeableness, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(core_high$agreeableness, core_low$agreeableness, return.dm=TRUE)
 
-wtc_hlcn = wilcox.test(core_high$neuroticism, core_low$neuroticism, conf.int=TRUE, paired=FALSE)
+wtc_hlcn = wilcox.test(core_high$neuroticism, core_low$neuroticism, 
+                       conf.int=TRUE, paired=FALSE)
 #cliff.delta(core_high$neuroticism, core_low$neuroticism, return.dm=TRUE)
 
-adj_p<-p.adjust(c(wtc_hlco$p.value, wtc_hlcc$p.value, wtc_hlce$p.value, wtc_hlca$p.value, wtc_hlcn$p.value), method = "bonferroni") 
+adj_p<-p.adjust(c(wtc_hlco$p.value, wtc_hlcc$p.value, wtc_hlce$p.value, wtc_hlca$p.value, wtc_hlcn$p.value), 
+                method = "bonferroni") 
 
 df[7,] <- c("High vs. low commit authors (core)", "", "", "", "")
 df[8,] <- c("openness", as.numeric(wtc_hlco$statistic), adj_p[1], round(as.numeric(wtc_hlco$conf.int), 3))

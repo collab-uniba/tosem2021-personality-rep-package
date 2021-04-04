@@ -41,11 +41,16 @@ We load the file with the scores from LIWC and rescale them in the range [1,5].
 
 ```{r load input, message=FALSE, warning=FALSE}
 full_personality_df = read_delim(params$data, ";", escape_double = FALSE)
-full_personality_df$openness <- resca(full_personality_df,openness, new_min=1, new_max=5)$openness_res 
-full_personality_df$conscientiousness <- resca(full_personality_df,conscientiousness, new_min=1, new_max=5)$conscientiousness_res  
-full_personality_df$extraversion <- resca(full_personality_df,extraversion, new_min=1, new_max=5)$extraversion_res  
-full_personality_df$agreeableness <- resca(full_personality_df,agreeableness, new_min=1, new_max=5)$agreeableness_res  
-full_personality_df$neuroticism <- resca(full_personality_df,neuroticism, new_min=1, new_max=5)$neuroticism_res
+full_personality_df$openness <- resca(full_personality_df,openness,
+                                      new_min=1, new_max=5)$openness_res 
+full_personality_df$conscientiousness <- resca(full_personality_df,conscientiousness, 
+                                               new_min=1, new_max=5)$conscientiousness_res  
+full_personality_df$extraversion <- resca(full_personality_df,extraversion, 
+                                          new_min=1, new_max=5)$extraversion_res  
+full_personality_df$agreeableness <- resca(full_personality_df,agreeableness, 
+                                           new_min=1, new_max=5)$agreeableness_res  
+full_personality_df$neuroticism <- resca(full_personality_df,neuroticism, 
+                                         new_min=1, new_max=5)$neuroticism_res
 ```
 
 Now we drop the unnecessary columns and, for each trait, we compute the average score per developer. An overview of the data just loaded:
@@ -91,6 +96,89 @@ round(KMO(personality)$MSA, 1)
 # Barlett's test of sphericity
 cortest.bartlett(personality)
 ```
+Finally, to rule out changes in personality over time, we split the dataset by date into two sections. Specifically, for each developers, we assess the time-span between the first and last communication in the dataset; then, we compute the point in time Mt so that approximately half of the observations (i.e., the monthly-based personality scores) are located before and after it. Then, two aggregate profiles for each developer are created by averaging the trait scores. Finally, for each trait, we perform a Wilcoxon Signed-Rank test to verify the null hypothesis that the median difference between pairs of observations (i.e., for each subject) is not significantly different from zero. Table 5 reports the results from the five paired tests, which show no significant differences between the distributions (all adjusted p-values > 0.05 after Bonferroni correction for multiple tests), thus confirming the stability of personality traits over time.
+
+```{r mean variations, echo=TRUE, message=FALSE, warning=FALSE}
+ids =  sqldf::sqldf("SELECT DISTINCT uid, 
+                    count(uid) as obs
+                    FROM full_personality_df
+                    GROUP by uid
+                    ORDER BY uid ASC;")
+mt.vector = sqldf::sqldf("SELECT uid, 
+                          email_count as emails, 
+                          word_count as words 
+                          FROM full_personality_df
+                          ORDER BY uid ASC;")
+
+before = data.frame(matrix(nrow=0, ncol=6))
+colnames(before) <- c("uid", "O", "C", "E", "A", "N")
+after = data.frame(matrix(nrow=0, ncol=6))
+colnames(after) <- c("uid", "O", "C", "E", "A", "N")
+for(i in 1:nrow(ids)) {
+  id1 = ids[i, 1]
+  obs = ids [i, 2]
+  spl1 = round(obs/2, 0)
+  
+  if(spl1 > 1) { # correction, avoid unpaired values and ties
+  
+    a =  sqldf::sqldf(sprintf("SELECT uid, 
+                              openness AS O, 
+                              conscientiousness AS C, 
+                              extraversion AS E, 
+                              agreeableness AS A, 
+                              neuroticism AS N 
+                              FROM full_personality_df
+                              where uid = '%s'
+                              order by month DESC
+                              limit '%s';", id1, obs-spl1 ))
+    x = data.frame(id1,mean(a$O), mean(a$C), mean(a$E), mean(a$A), mean(a$N))
+    colnames(x) <- c("uid", "O", "C", "E", "A", "N")
+    after = rbind(after, x)
+  
+    b =  sqldf::sqldf(sprintf("SELECT uid, 
+                              openness AS O, 
+                              conscientiousness AS C, 
+                              extraversion AS E, 
+                              agreeableness AS A, 
+                              neuroticism AS N  
+                              FROM full_personality_df
+                              where uid = '%s'
+                              order by month ASC
+                              limit '%s';", id1, spl1 ))
+    x = data.frame(id1,mean(b$O), mean(b$C), mean(b$E), mean(b$A), mean(b$N))
+    colnames(x) <- c("uid", "O", "C", "E", "A", "N")
+    before = rbind(before, x)
+  }
+}
+
+wO = wilcox.test(before$O,after$O, paired = TRUE, 
+                 alternative = "two.sided",exact=TRUE,conf.int=TRUE)
+wC = wilcox.test(before$C,after$C, paired = TRUE, 
+                 alternative = "two.sided",exact=TRUE,conf.int=TRUE)
+wE = wilcox.test(before$E,after$E, paired = TRUE, 
+                 alternative = "two.sided",exact=TRUE,conf.int=TRUE)
+wA = wilcox.test(before$A,after$A, paired = TRUE, 
+                 alternative = "two.sided",exact=TRUE,conf.int=TRUE)
+wN = wilcox.test(before$N,after$N, paired = TRUE, 
+                 alternative = "two.sided",exact=TRUE,conf.int=TRUE)
+
+# bonferroni adjustment
+ps <- p.adjust(c(wO$p.value, wC$p.value, wE$p.value, wA$p.value, wN$p.value), 
+               method = "bonferroni", n=5)
+ps <- round(ps, 3)
+
+dfW <- data.frame(matrix(ncol = 5, nrow = 0))
+x <- c("Trait", "V", "p-value ", "CI 95% low", "CI 95% high")
+colnames(dfW) <- x
+dfW[1,] <- c("Openness", as.numeric(wO$statistic), ps[1], round(as.numeric(wO$conf.int), 3))
+dfW[2,] <- c("Conscientiousness", as.numeric(wC$statistic), ps[2], round(as.numeric(wC$conf.int), 3))
+dfW[3,] <- c("Extraversion", as.numeric(wE$statistic), ps[3], round(as.numeric(wE$conf.int), 3))
+dfW[4,] <- c("Agreeableness", as.numeric(wA$statistic), ps[4], round(as.numeric(wA$conf.int), 3))
+dfW[5,] <- c("Neuroticism", as.numeric(wN$statistic), ps[5], round(as.numeric(wN$conf.int), 3))
+dfW
+```
+
+
 
 ## Factor analysis with PCA
 We perform Principal Component Analysis (PCA) with varimax rotation. PCA is a statistical procedure that converts a set of observations of possibly correlated variables into a set of values of linearly uncorrelated variables, i.e., the principal components. The scree plot below suggest with the elbow method that we can extract either two or three components.
@@ -216,7 +304,7 @@ arc <- stepArchetypes(personality_log,
 ```
 ```{r scree plot, echo=TRUE, message=FALSE, warning=FALSE}
 screeplot(arc) 
-arc_best <- bestModel(arc[[2]])
+arc_best <- bestModel(arc[[3]])
 ```
 
 Table 10 shows the trait coordinates for both archetypes, standardized for the ease of comparison. We compare the trait values across the three archetypes and obtain results in line with the findings from k-means. In fact, the extracted archetypes can be mapped on the two clusters described above, since we find that Archetype 1 is similar to Cluster 1, grouping developers scoring lower in *openness* and *conscientiousness*, and higher in *extraversion*, *agreeableness*, and *neuroticism*; Archetype 2 is similar to Cluster 2, grouping developers with higher scores in *openness* and *conscientiousness*, and lower scores in *extraversion*, *agreeableness*, and *neuroticism*.
@@ -224,5 +312,6 @@ Table 10 shows the trait coordinates for both archetypes, standardized for the e
 ```{r archetypes table, echo=TRUE, warning=FALSE}
 scale(parameters(arc_best)[1,], center=TRUE, scale=TRUE)
 scale(parameters(arc_best)[2,], center=TRUE, scale=TRUE)
+scale(parameters(arc_best)[3,], center=TRUE, scale=TRUE)
 ```
 
