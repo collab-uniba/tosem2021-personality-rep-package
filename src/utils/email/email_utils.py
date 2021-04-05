@@ -201,7 +201,7 @@ def _remove_lines_of_code(text):
 def hash_score_email_addresses():
     # plain text
     sha_addresses = list()
-    path = os.path.join("dataset", "goldstandard", "address_list.txt")
+    path = os.path.join("dataset", "raw", "address_list.txt")
     with open(file=path, mode='r') as f:
         addresses = [a.strip() for a in f.readlines()]
         for addr in addresses:
@@ -213,7 +213,7 @@ def hash_score_email_addresses():
         f.writelines("\n".join(sha_addresses))
 
     # json
-    path = os.path.join("dataset", "goldstandard", "ipip-scores.json")
+    path = os.path.join("dataset", "raw", "ipip-scores.json")
     with open(file=path, mode='r') as f:
         data = json.load(f)
         for d in data:
@@ -236,7 +236,7 @@ def _remove_contractions(text):
 
 def get_mail_corpus():
     # Path to mail corpus
-    corpus_file = 'dataset/goldstandard/mailcorpus.json'
+    corpus_file = 'dataset/raw/mailcorpus.json'
     with open(corpus_file) as data_file:
         corpus = json.load(data_file)
 
