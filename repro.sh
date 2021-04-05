@@ -11,7 +11,6 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 usage() {
 cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] -s all|phase1|phase2 [test]
-Script description here.
 Available options:
 -h, --help      Print this help and exit
 -v, --verbose   Print script debug info
