@@ -8,6 +8,7 @@ Ensure that your box fulfills the following requirements:
 * R 4.0.4+
 * Java 1.8+
 * python3-venv
+* pandoc
 * homebrew (macOS-only)
 
 ### Cloning
