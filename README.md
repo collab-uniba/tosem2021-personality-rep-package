@@ -43,7 +43,7 @@ the arguments `phase1` or `phase2`.
    paper. This is because the tool `Personality Recognizer` is non-deterministic, hence its output will slightly change 
    at every execution.
 
-2. Because of *Phase Two* is quite time-consuming---it takes hours if not days, depending on your box specs---for test 
+2. Because of *Phase Two* is quite time-consuming---it takes hours if not days, depending on your box specs. For test 
    purposes, you can supply the argument `test` to work with a very small, random subsample of the original dataset and 
    keep the computational time within minutes.
 
