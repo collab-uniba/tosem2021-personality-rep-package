@@ -12,6 +12,9 @@ Ensure that your box fulfills the following requirements:
 * LaTeX
 * homebrew (macOS-only)
 
+On macOS, you can install Latex by executing `brew install mactex`.
+On Ubuntu, run `sudo apt install texlive-latex-extra`.
+
 ### Cloning
 The repository uses git submodules. To clone the code and its submodules, run `git clone --recursive <repo-url.git>`
 
