@@ -12,9 +12,8 @@ Ensure that your box fulfills the following requirements:
 The repository uses git submodules. To clone the code and its submodules, run `git clone --recursive <repo-url.git>`
 
 ### Setup
-Setup instructions are contained in the file `setup.sh` and must be run only once.
-To complete the setup, simply run `bash setup.sh`.
-The script has been tested on macOS Big Sur and Ubuntu 20.04 LTS.
+Setup instructions are contained in the file `setup.sh` and must be run only once. The script has been tested on macOS Big Sur and Ubuntu 20.04 LTS.
+To complete the setup, simply run `sudo bash setup.sh`.
 
 If you have `anaconda` installed, ensure that the `conda base` environment is not active during setup.
 
