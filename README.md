@@ -18,6 +18,8 @@ To complete the setup, simply run `bash setup.sh`. Please, note that the install
 
 If you have `anaconda` installed, ensure that the `conda base` environment is not active during setup.
 
+Finally, ensure that the environment variable `$JAVA_HOME` is properly set.
+
 ### Reproducible pipeline
 
 To reproduce the pipeline, run the `repro.sh` script.
