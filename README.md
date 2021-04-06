@@ -16,6 +16,8 @@ On macOS, you can install LaTeX and pandoc by executing `brew install mactex pan
 
 On Ubuntu, run `sudo apt install texlive-latex-extra pandoc`.
 
+Finally, after installing Java, ensure that the environment variable `$JAVA_HOME` is properly set.
+
 ### Cloning
 The repository uses git submodules. To clone the code and its submodules, run `git clone --recursive <repo-url.git>`
 
@@ -24,8 +26,6 @@ Setup instructions are contained in the file `setup.sh` and must be run only onc
 To complete the setup, simply run `bash setup.sh`. Please, note that the installation of the R packages will prompt you to enter the your password via `sudo`. 
 
 If you have `anaconda` installed, ensure that the `conda base` environment is not active during setup.
-
-Finally, ensure that the environment variable `$JAVA_HOME` is properly set.
 
 ### Reproducible pipeline
 
