@@ -9,6 +9,7 @@ Ensure that your box fulfills the following requirements:
 * Java 1.8+
 * python3-venv
 * pandoc
+* LaTeX
 * homebrew (macOS-only)
 
 ### Cloning
