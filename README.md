@@ -6,6 +6,7 @@ We Go?" under review at ACM TOSEM.
 Ensure that your box fulfills the following requirements:
 * Python 3.8.3+
 * R 4.0.4+
+* Java 1.8+
 * python3-venv
 * homebrew (macOS-only)
 
