@@ -8,6 +8,12 @@ Ensure that your box fulfills the following requirements:
 * R 4.0.4
 * homebrew (macOS-only)
 
+### Cloning
+The repository uses git submodules. To clone the code and its submodules, run:
+```bash
+git clone --recursive <repo-url.git>
+```
+
 ### Setup
 Setup instructions are contained in the file `setup.sh` and must be run only once.
 To complete the setup, simply run `sh setup.sh`.
