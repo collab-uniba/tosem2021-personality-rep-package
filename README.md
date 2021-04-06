@@ -9,10 +9,7 @@ Ensure that your box fulfills the following requirements:
 * homebrew (macOS-only)
 
 ### Cloning
-The repository uses git submodules. To clone the code and its submodules, run:
-```bash
-git clone --recursive <repo-url.git>
-```
+The repository uses git submodules. To clone the code and its submodules, run `git clone --recursive <repo-url.git>`
 
 ### Setup
 Setup instructions are contained in the file `setup.sh` and must be run only once.
