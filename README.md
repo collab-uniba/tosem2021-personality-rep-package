@@ -13,7 +13,7 @@ The repository uses git submodules. To clone the code and its submodules, run `g
 
 ### Setup
 Setup instructions are contained in the file `setup.sh` and must be run only once.
-To complete the setup, simply run `sh setup.sh`.
+To complete the setup, simply run `bash setup.sh`.
 The script has been tested on macOS Big Sur and Ubuntu 20.04 LTS.
 
 If you have `anaconda` installed, ensure that the `conda base` environment is not active during setup.
