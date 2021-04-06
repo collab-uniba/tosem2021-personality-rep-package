@@ -17,7 +17,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   brew install libxml2
 fi
 
-echo "Installing R packages"
+echo "Installing R packages, please enter the sudo password"
+sudo -i
 REPO='https://cloud.r-project.org'
 Rscript -e "install.packages('remotes', dependencies=TRUE, repos='${REPO}')"
 Rscript -e "remotes::install_github('M3SOulu/NLoN')"
@@ -47,6 +48,7 @@ Rscript -e "install.packages('IRdisplay', dependencies=TRUE, repos='${REPO}')"
 Rscript -e "install.packages('moments', dependencies=TRUE, repos='${REPO}')"
 Rscript -e "install.packages('MuMIn', dependencies=TRUE, repos='${REPO}')"
 Rscript -e "install.packages('renv', dependencies=TRUE, repos='${REPO}')"
+exit
 
 echo "Setting up the virtual environment"
 python3 -m venv .env
