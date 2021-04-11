@@ -1,4 +1,4 @@
-## tosem2021-personality-rep-package [![DOI](https://zenodo.org/badge/346403311.svg)](https://zenodo.org/badge/latestdoi/346403311)
+## tosem2021-personality-rep-package [![DOI](https://zenodo.org/badge/346403311.svg)](https://doi.org/10.5281/zenodo.4679302)
 Replication package for the manuscript "Using Personality Detection Tools for Software Engineering Research: How Far Can
 We Go?" under review at ACM TOSEM.
 
