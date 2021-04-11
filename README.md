@@ -36,7 +36,7 @@ Available options:
 -h, --help      Print this help and exit
 -v, --verbose   Print script debug info
 -s, --stage     Pipeline stage. Accepted values: all, phase1, phase2
-test            Optional argument, forces the use of a subsample
+test            Optional argument, forces the use of a dataset subsample
 ```
 
 You can choose to reproduce the full pipeline by passing the argument `-s|--stage all`.
