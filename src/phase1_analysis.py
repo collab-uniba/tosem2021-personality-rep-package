@@ -2,6 +2,7 @@ import json
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import KBinsDiscretizer
 
 from utils import io as io_utils
 from utils import plot as plot_utils
@@ -163,6 +164,122 @@ def save_plots(df_o, df_c, df_e, df_a, df_n, tools):
         plot_utils.save_violins_plot(df_o[tool], df_c[tool], df_e[tool], df_a[tool], df_n[tool], path)
 
 
+def _mark_strong_disagreements(tool_scores, ids, gs_scores):
+    res = list()
+    for i in range(0, len(gs_scores)):
+        if abs(tool_scores[i] - gs_scores[i]) == 2:
+            res.append(ids[i].strip())
+    return res
+
+
+def _mark_disagreements(tool_scores, ids, gs_scores):
+    res = list()
+    for i in range(0, len(gs_scores)):
+        if tool_scores[i] != gs_scores[i]:
+            res.append(ids[i].strip())
+    return res
+
+
+def error_analysis(_tools, gs_df):
+    # 0=LOW, 1=MEDIUM, 2=HIGH
+    discretizer = KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='kmeans')
+
+    gs_df = discretizer.fit_transform(gs_df.values)
+
+    res_dict = dict()
+    _df_o = dict()
+    _df_c = dict()
+    _df_e = dict()
+    _df_a = dict()
+    _df_n = dict()
+    _df_id = dict()
+    for tool in _tools:
+        with open(file=_tools[tool], mode='r') as jsf:
+            temp = pd.DataFrame.from_dict(json.load(jsf))
+            _df_o[tool] = discretizer.fit_transform(temp['Openn'].values.reshape(-1, 1))
+            _df_c[tool] = discretizer.fit_transform(temp['Consc'].values.reshape(-1, 1))
+            _df_e[tool] = discretizer.fit_transform(temp['Extra'].values.reshape(-1, 1))
+            _df_a[tool] = discretizer.fit_transform(temp['Agree'].values.reshape(-1, 1))
+            _df_n[tool] = discretizer.fit_transform(temp['Neuro'].values.reshape(-1, 1))
+            _df_id[tool] = temp['email'].values
+    res_dict['Openn'] = _df_o
+    res_dict['Consc'] = _df_c
+    res_dict['Extra'] = _df_e
+    res_dict['Agree'] = _df_a
+    res_dict['Neuro'] = _df_n
+    res_dict['email'] = _df_id
+
+    strong_disagreements = dict()
+    disagreements = dict()
+    for tool in _tools:
+        strong_disagreements["{}-{}".format(tool, 'Openn')] = _mark_strong_disagreements(res_dict['Openn'][tool],
+                                                                                         res_dict['email'][tool],
+                                                                                         gs_df[:, 0])
+        disagreements[(tool, 'Openn')] = _mark_disagreements(res_dict['Openn'][tool],
+                                                             res_dict['email'][tool],
+                                                             gs_df[:, 0])
+        strong_disagreements["{}-{}".format(tool, 'Consc')] = _mark_strong_disagreements(res_dict['Consc'][tool],
+                                                                                         res_dict['email'][tool],
+                                                                                         gs_df[:, 1])
+        disagreements[(tool, 'Consc')] = _mark_disagreements(res_dict['Consc'][tool],
+                                                             res_dict['email'][tool],
+                                                             gs_df[:, 1])
+        strong_disagreements["{}-{}".format(tool, 'Extra')] = _mark_strong_disagreements(res_dict['Extra'][tool],
+                                                                                         res_dict['email'][tool],
+                                                                                         gs_df[:, 2])
+        disagreements[(tool, 'Extra')] = _mark_disagreements(res_dict['Extra'][tool],
+                                                             res_dict['email'][tool],
+                                                             gs_df[:, 2])
+        strong_disagreements["{}-{}".format(tool, 'Agree')] = _mark_strong_disagreements(res_dict['Agree'][tool],
+                                                                                         res_dict['email'][tool],
+                                                                                         gs_df[:, 3])
+        disagreements[(tool, 'Agree')] = _mark_disagreements(res_dict['Agree'][tool],
+                                                             res_dict['email'][tool],
+                                                             gs_df[:, 3])
+        strong_disagreements["{}-{}".format(tool, 'Neuro')] = _mark_strong_disagreements(res_dict['Neuro'][tool],
+                                                                                         res_dict['email'][tool],
+                                                                                         gs_df[:, 4])
+        disagreements[(tool, 'Neuro')] = _mark_disagreements(res_dict['Neuro'][tool],
+                                                             res_dict['email'][tool],
+                                                             gs_df[:, 4])
+
+    with open(file='results/phase1/errors_strong.json', mode='w') as js_f:
+        json.dump(strong_disagreements, js_f, indent=4)
+
+    results = dict()
+    for tool in _tools:
+        o_s = set(disagreements[(tool, 'Openn')])
+        try:
+            results['Openn'] = set.intersection(results['Openn'], o_s)
+        except KeyError:
+            results['Openn'] = o_s
+        c_s = set(disagreements[(tool, 'Consc')])
+        try:
+            results['Consc'] = set.intersection(results['Consc'], c_s)
+        except KeyError:
+            results['Consc'] = c_s
+        e_s = set(disagreements[(tool, 'Extra')])
+        try:
+            results['Extra'] = set.intersection(results['Extra'], e_s)
+        except KeyError:
+            results['Extra'] = e_s
+        a_s = set(disagreements[(tool, 'Agree')])
+        try:
+            results['Agree'] = set.intersection(results['Agree'], a_s)
+        except KeyError:
+            results['Agree'] = a_s
+        n_s = set(disagreements[(tool, 'Neuro')])
+        try:
+            results['Neuro'] = set.intersection(results['Neuro'], n_s)
+        except KeyError:
+            results['Neuro'] = n_s
+
+    for k in results:
+        results[k] = list(results[k])
+    with open(file='results/phase1/errors_common.json', mode='w') as js_f:
+        json.dump(results, js_f, indent=4)
+
+
 if __name__ == '__main__':
     mailcorpus_stats()
     with open(file="dataset/goldstandard/address_list_sha.txt", mode="r") as f:
@@ -185,3 +302,5 @@ if __name__ == '__main__':
         pairwise_correlations(df_o, df_c, df_e, df_a, df_n, method="pearson")
         pairwise_correlations(df_o, df_c, df_e, df_a, df_n, method="spearman")
         save_plots(df_o, df_c, df_e, df_a, df_n, col_names)
+
+        error_analysis(tools, goldstd_df.copy(deep=True))
