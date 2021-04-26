@@ -21,10 +21,12 @@ def get_profile_twit_pers():
 
         try:
             user_emails = open(file=os.path.join("dataset/twitpersonality/Data", file), mode="r").read()
+            # threshold: at least 600 words per user
             content = embeddings.transformTextForTesting(embed_dictionary=word_dict, length_threshold=3,
-                                                         documents=[user_emails], operation="conc")
-        except Exception:
-            print("Not enough words for the prediction of subject {}.".format(sha))
+                                                         documents=user_emails.split('.'), operation="conc")
+        except Exception as e:
+            print("Exception when analyzing subject {}.".format(sha))
+            print(e)
             continue
 
         scores = dict()
@@ -32,7 +34,8 @@ def get_profile_twit_pers():
             model = joblib.load("dataset/twitpersonality/Models/MPBig/SVM_Big_conc_" + trait + ".pkl")
             preds = model.predict(content)
             scores[trait] = float(str(np.mean(np.array(preds)))[0:5])
-        row_dict = {'email': sha, 'Openn': scores["O"], 'Consc': scores["C"], 'Extra': scores["E"], 'Agree': scores["A"], 'Neuro': scores["N"]}
+        row_dict = {'email': sha, 'Openn': scores["O"], 'Consc': scores["C"], 'Extra': scores["E"],
+                    'Agree': scores["A"], 'Neuro': scores["N"]}
         scores_list.append(row_dict)
 
     scores_df = pd.DataFrame(data=scores_list, columns=('email', 'Openn', 'Consc', 'Extra', 'Agree', 'Neuro'))
