@@ -52,4 +52,4 @@ the arguments `phase1` or `phase2`.
 2. The script `ph1_0-goldstandard_creation.sh` is intentionally not part of the reproducible pipeline. It is meant to be
    executed only once, to create the anonymized gold standard in which email addresses have been replaced
    with hashed ids and all the sensitive content from emails (e.g., names, urls) have been scrubbed. This makes
-   impossible to track down the participants from the public email archives of the Apache Software Foundation.
+   prevents from tracking down the participants by searching for matches into the public email archives of the Apache Software Foundation.
