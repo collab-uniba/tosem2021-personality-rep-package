@@ -247,10 +247,10 @@ def get_mail_corpus():
     for d in corpus:
         try:
             res = EmailReplyParser.read(d['message_body'].replace('\\n', '\n'))
-            message_body = EmailReplyParser.parse_reply(res.text)
+            clean_message_body = EmailReplyParser.parse_reply(res.text)
             n += 1
 
-            clean_message_body = _remove_contractions(message_body)
+            #clean_message_body = _remove_contractions(clean_message_body)
             clean_message_body = _remove_lines_of_code(clean_message_body)
             clean_message_body = _clean_body(clean_message_body)
             clean_message_body = _remove_stopwords_nonenglish_punctuation(clean_message_body)
