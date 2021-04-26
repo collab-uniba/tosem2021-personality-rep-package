@@ -1,4 +1,4 @@
-## tosem2021-personality-rep-package
+## tosem2021-personality-rep-package [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4679303.svg)](https://doi.org/10.5281/zenodo.4679303)
 Replication package for the manuscript "Using Personality Detection Tools for Software Engineering Research: How Far Can
 We Go?" under review at ACM TOSEM.
 
@@ -12,8 +12,11 @@ Ensure that your box fulfills the following requirements:
 * LaTeX
 * homebrew (macOS-only)
 
-On macOS, you can install Latex by executing `brew install mactex`.
-On Ubuntu, run `sudo apt install texlive-latex-extra`.
+On macOS, you can install LaTeX and pandoc by executing `brew install mactex pandoc`.
+
+On Ubuntu, run `sudo apt install texlive-latex-extra pandoc`.
+
+Finally, after installing Java, ensure that the environment variable `$JAVA_HOME` is properly set.
 
 ### Cloning
 The repository uses git submodules. To clone the code and its submodules, run `git clone --recursive <repo-url.git>`
@@ -24,8 +27,6 @@ To complete the setup, simply run `bash setup.sh`. Please, note that the install
 
 If you have `anaconda` installed, ensure that the `conda base` environment is not active during setup.
 
-Finally, ensure that the environment variable `$JAVA_HOME` is properly set.
-
 ### Reproducible pipeline
 
 To reproduce the pipeline, run the `repro.sh` script.
@@ -35,7 +36,7 @@ Available options:
 -h, --help      Print this help and exit
 -v, --verbose   Print script debug info
 -s, --stage     Pipeline stage. Accepted values: all, phase1, phase2
-test            Optional argument, forces the use of a subsample
+test            Optional argument, forces the use of a dataset subsample
 ```
 
 You can choose to reproduce the full pipeline by passing the argument `-s|--stage all`.
