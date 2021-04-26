@@ -44,15 +44,11 @@ the arguments `phase1` or `phase2`.
 
 #### Notes
 
-1. Some output metrics from *Phase One* (e.g., score correlations) will slightly vary from those reported in the 
-   paper. This is because the tool `Personality Recognizer` is non-deterministic, hence its output will slightly change 
-   at every execution.
-
-2. Because of *Phase Two* is quite time-consuming---it takes hours if not days, depending on your box specs. For test 
+1. Because of *Phase Two* is quite time-consuming---it takes hours if not days, depending on your box specs. For test 
    purposes, you can supply the argument `test` to work with a very small, random subsample of the original dataset and 
    keep the computational time within minutes.
 
-3. The script `ph1_0-goldstandard_creation.sh` is intentionally not part of the reproducible pipeline. It is meant to be
+2. The script `ph1_0-goldstandard_creation.sh` is intentionally not part of the reproducible pipeline. It is meant to be
    executed only once, to create the anonymized gold standard in which email addresses have been replaced
    with hashed ids and all the sensitive content from emails (e.g., names, urls) have been scrubbed. This makes
    impossible to track down the participants from the public email archives of the Apache Software Foundation.
