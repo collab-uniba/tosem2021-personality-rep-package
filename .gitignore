@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 .DS_Store
 .idea
+__MACOSX/
 
 # Project-specific exclusions
 /dataset/raw/
