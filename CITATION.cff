@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: If you use this software, please cite the paper below.
 title: Using Personality Detection Tools for Software EngineeringResearch: How Far Can We Go?, ACM TOSEM, under review
-doi: tbd
+doi: 10.5281/zenodo.4720988	
 authors:
 - given-names: "Calefato"
   family-names: "Fabio"
