@@ -29,7 +29,7 @@ If you have `anaconda` installed, ensure that the `conda base` environment is no
 
 ### Reproducible pipeline
 
-To reproduce the pipeline, run the `repro.sh` script.
+To reproduce the pipeline, run `bash repro.sh`:
 ```text
 Usage: repro.sh [-h] [-v] -s all|phase1|phase2 -d test|full
 Available options:
@@ -52,5 +52,5 @@ on the `full` dataset or on a random `test` subsample.
 
 2. The script `ph1_0-goldstandard_creation.sh` is intentionally not part of the reproducible pipeline. It is meant to be
    executed only once, to create the anonymized gold standard in which email addresses have been replaced
-   with hashed ids and all the sensitive content from emails (e.g., names, urls) have been scrubbed. This should prevent others 
-   from tracking down the participants by searching for matcheing text into the public email archives of the Apache Software Foundation.
+   with hashed ids and all the sensitive content from emails (e.g., names, urls) have been scrubbed. This is intended to prevent others 
+   from tracking down the participants by searching for matching text into the public email archives of the Apache Software Foundation.
