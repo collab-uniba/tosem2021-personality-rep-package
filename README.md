@@ -31,17 +31,18 @@ If you have `anaconda` installed, ensure that the `conda base` environment is no
 
 To reproduce the pipeline, run the `repro.sh` script.
 ```text
-Usage: repro.sh [-h] [-v] -s all|phase1|phase2 [test]
+Usage: repro.sh [-h] [-v] -s all|phase1|phase2 -d test|full
 Available options:
 -h, --help      Print this help and exit
 -v, --verbose   Print script debug info
 -s, --stage     Pipeline stage. Accepted values: all, phase1, phase2
-test            Optional argument, forces the use of a dataset subsample
+-d, --dataset   Dataset size. Accepted values: test, full
 ```
 
 You can choose to reproduce the full pipeline by passing the argument `-s|--stage all`.
 Otherwise, you can reproduce individually the two phases of the experiment by passing instead
-the arguments `phase1` or `phase2`.
+the arguments `phase1` or `phase2`. Also, to reduce the computational time, you can chose between running the script
+on the `full` dataset or on a random `test` subsample.
 
 #### Notes
 
