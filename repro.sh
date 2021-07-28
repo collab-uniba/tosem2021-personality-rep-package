@@ -10,12 +10,12 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 usage() {
 cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] -s all|phase1|phase2 [test]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] -s all|phase1|phase2 -d test|full
 Available options:
 -h, --help      Print this help and exit
 -v, --verbose   Print script debug info
 -s, --stage     Pipeline stage. Accepted values: all | phase1 | phase2
-test            Optional argument. When passed, will force the use of a subsample
+-d, --dataset   Dataset size: Accepted values: test | full
 EOF
 exit
 }
@@ -50,8 +50,8 @@ parse_params() {
       -h | --help) usage ;;
       -v | --verbose) set -x ;;
       --no-color) NO_COLOR=1 ;;
-      -s | --stage)
-        stage="${2-}"
+      -d | --dataset) dataset="${2-}" ;;
+      -s | --stage) stage="${2-}"
   shift
         ;;
       -?*) die "Unknown option: $1" ;;
@@ -62,14 +62,18 @@ parse_params() {
   args=("$@")
   # check required params and arguments
   [[ -z "${stage-}" ]] && die "Missing required parameter: stage"
+  [[ -z "${dataset-}" ]] && die "Missing required parameter: dataset"
   return 0
 }
 parse_params "$@"
 setup_colors
 # script logic here
-if [[ ${#args[@]} -gt 0  ]] && [[ ${args[0]} == "test" ]]
+if [[ ${dataset} == "test" ]]
 then
   msg "${CYAN}Test mode is ON. Using random subsample to reduce computational time.${NOFORMAT}"
+elif [[ ${dataset} == "full" ]]
+then
+  msg "${CYAN}Full mode is ON. Using the complete dataset.${NOFORMAT}"
 fi
 if [ "$stage" == "all" ]
 then
@@ -77,7 +81,7 @@ then
   bash ph1_1-data_preparation.sh || die "${RED}[Phase 1.1] Failed data preparation.${NOFORMAT}"
   bash ph1_2-tools_execution.sh || die "${RED}[Phase 1.2] Failed tool execution.${NOFORMAT}"
   bash ph1_3-analyses_execution.sh || die "${RED}[Phase 1.3] Failed analyses.${NOFORMAT}"
-  bash ph2_1-rep_iyer.sh "${args[0]}" || die "${RED}[Phase 2.1] Failed replication of Iyer et al.${NOFORMAT}"
+  bash ph2_1-rep_iyer.sh "${dataset}" || die "${RED}[Phase 2.1] Failed replication of Iyer et al.${NOFORMAT}"
   bash ph2_2-rep_calefato.sh || die "${RED}[Phase 2.1] Failed replication of Calefato et al..${NOFORMAT}"
   msg "${BLUE}Full pipeline reproduced.${NOFORMAT}"
 elif [ "$stage" == "phase1" ]
@@ -90,7 +94,7 @@ then
 elif [ "$stage" == "phase2" ]
 then
   msg "${PURPLE}Reproducing phase 2.${NOFORMAT}"
-  bash ph2_1-rep_iyer.sh "${args[0]}" || die "${RED}[Phase 2.1] Failed replication of Iyer et al.${NOFORMAT}"
+  bash ph2_1-rep_iyer.sh "${dataset}" || die "${RED}[Phase 2.1] Failed replication of Iyer et al.${NOFORMAT}"
   bash ph2_2-rep_calefato.sh || die "${RED}[Phase 2.1] Failed replication of Calefato et al..${NOFORMAT}"
   msg "${PURPLE}Phase 2 completed.${NOFORMAT}"
 else
