@@ -25,7 +25,7 @@ options(digits=3)
 # load data
 args = commandArgs(trailingOnly=TRUE)
 infile <- if (length(args) < 1) 'data/final_LIWC.csv' else args[1];
-TEST <- if (length(args) == 2) TRUE else FALSE;
+TEST <- if ((length(args) == 2) & args[2] == 'test') TRUE else FALSE;
 print("Loading data")
 data_pr <- read.csv(infile)
 
