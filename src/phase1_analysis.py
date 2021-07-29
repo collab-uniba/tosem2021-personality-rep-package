@@ -105,24 +105,24 @@ def mailcorpus_stats():
         f.write("No. of subjects: {}\n".format(no_subjects))
         f.write("Total no. of emails: {}\n".format(no_emails))
         f.write("Total no. of words: {}\n".format(len(all_bodies.split())))
-        f.write("Avg. no. of emails per user {:.0f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(
+        f.write("Avg. no. of emails per user: {:.2f} (Min {:.2f}, Max {:.2f}, Median {:.2f}, SD {:.2f})\n".format(
             no_emails / no_subjects,
-            np.min(list(
-                no_emails_per_user.values())),
-            np.max(list(
-                no_emails_per_user.values())),
-            np.std(list(
-                no_emails_per_user.values()))))
+            np.min(list(no_emails_per_user.values())),
+            np.max(list(no_emails_per_user.values())),
+            np.median(list(no_emails_per_user.values())),
+            np.std(list(no_emails_per_user.values()))))
         f.write(
-            "Avg. no. of words per user-email {:.0f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(
+            "Avg. no. of words per user-email: {:.2f} (Min {:.2f}, Max {:.2f}, Median {:.2f}, SD {:.2f})\n".format(
                 np.mean(list(words_per_email.values())),
                 np.min(list(words_per_email.values())),
                 np.max(list(words_per_email.values())),
+                np.median(list(words_per_email.values())),
                 np.std(list(words_per_email.values()))))
-        f.write("Avg. no. words per user {:.0f} (Min {:.2f}, Max {:.2f}, SD {:.2f})\n".format(
+        f.write("Avg. no. words per user: {:.2f} (Min {:.2f}, Max {:.2f}, Median {:.2f}, SD {:.2f})\n".format(
             np.mean(list(tot_words_user.values())),
             np.min(list(tot_words_user.values())),
             np.max(list(tot_words_user.values())),
+            np.median(list(tot_words_user.values())),
             np.std(list(tot_words_user.values()))))
 
 
