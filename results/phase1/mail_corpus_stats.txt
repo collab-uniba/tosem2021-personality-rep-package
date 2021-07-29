@@ -1,6 +1,6 @@
 No. of subjects: 50
 Total no. of emails: 1543
 Total no. of words: 54441
-Avg. no. of emails per user 31 (Min 15.00, Max 55.00, SD 8.45)
-Avg. no. of words per user-email 38 (Min 16.98, Max 77.00, SD 12.20)
-Avg. no. words per user 1111 (Min 747.00, Max 1764.00, SD 180.14)
+Avg. no. of emails per user: 30.86 (Min 15.00, Max 55.00, Median 33.00, SD 8.45)
+Avg. no. of words per user-email: 37.99 (Min 16.98, Max 77.00, Median 36.30, SD 12.20)
+Avg. no. words per user: 1111.04 (Min 747.00, Max 1764.00, Median 1098.00, SD 180.14)
