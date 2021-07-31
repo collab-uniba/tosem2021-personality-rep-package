@@ -46,7 +46,7 @@ on the `full` dataset or on a random `test` subsample.
 
 #### Notes
 
-1. *Phase Two* is quite time-consuming---it can take hours, depending on your box specs. For test 
+1. *Phase Two* is quite time-consuming---it can take hours, in not days, depending on your box specs. For test 
    purposes, you can supply the argument `test` to work with a very small, random subsample of the original dataset and 
    keep the computational time within minutes.
 
