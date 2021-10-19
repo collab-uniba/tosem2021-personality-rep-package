@@ -9,7 +9,7 @@
 appDir = h:\\projects\\PersonalityRecognizer
 
 # Path to the LIWC dictionary file (LIWC.CAT)
-liwcCatFile = h:\\apps\\LIWC2001 Windows\\LIWC.CAT
+liwcCatFile = lib\\LIWC.CAT
 
 # Path to the MRC Psycholinguistic Database file (mrc2.dct)
-mrcPath = h:\\apps\\mrc\\mrc2.dct
+mrcPath = mrc\\mrc2.dct
