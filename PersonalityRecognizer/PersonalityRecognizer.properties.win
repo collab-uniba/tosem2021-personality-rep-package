@@ -6,7 +6,7 @@
 # Backslashes need to be escaped by another backslash
 
 # Root directory of the application
-appDir = h:\\projects\\PersonalityRecognizer
+appDir = .
 
 # Path to the LIWC dictionary file (LIWC.CAT)
 liwcCatFile = lib\\LIWC.CAT
