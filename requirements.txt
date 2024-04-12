@@ -16,7 +16,7 @@ nltk==3.6.6
 numpy==1.22.0
 pandas==1.2.3
 patsy==0.5.1
-Pillow==10.2.0
+Pillow==10.3.0
 polyglot==16.7.4
 pycld2==0.41
 pycparser==2.20
